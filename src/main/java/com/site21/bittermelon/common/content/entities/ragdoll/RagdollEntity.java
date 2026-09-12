@@ -18,12 +18,15 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class RagdollEntity extends Entity {
     private static final int PART_COUNT = 6;
     public Ragdoll ragdoll;
     public static final EntityDataAccessor<List<RagdollTransformation>> PART_TRANSFORMATIONS =
             SynchedEntityData.defineId(RagdollEntity.class, BitterDataSerializers.RAGDOLL_TRANSFORMATIONS.get());
+    private static final EntityDataAccessor<UUID> PLAYER_UUID =
+            SynchedEntityData.defineId(RagdollEntity.class, BitterDataSerializers.UUID.get());
     private Vec3 pushDirection = new Vec3();
     private final RVec3[] prevPos = new RVec3[PART_COUNT];
     private final RVec3[] curPos = new RVec3[PART_COUNT];
@@ -100,6 +103,10 @@ public class RagdollEntity extends Entity {
         return curRot[i];
     }
 
+    public UUID getPlayerUUID() { return entityData.get(PLAYER_UUID); }
+
+    public void setPlayerUUID(UUID data) { entityData.set(PLAYER_UUID, data); }
+
     public List<RagdollTransformation> getPartTransformations() {
         return entityData.get(PART_TRANSFORMATIONS);
     }
@@ -111,6 +118,7 @@ public class RagdollEntity extends Entity {
             initial.add(new RagdollTransformation());
         }
         entityData.define(PART_TRANSFORMATIONS, initial);
+        entityData.define(PLAYER_UUID, new UUID(0, 0));
     }
 
     @Override
@@ -120,12 +128,12 @@ public class RagdollEntity extends Entity {
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
-
+//        this.setPlayerUUID(input.read("PlayerUUID", UUIDUtil.CODEC).orElse(new UUID(0, 0)));
     }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
-
+//        output.store("PlayerUUID", UUIDUtil.CODEC, entityData.get(PLAYER_UUID));
     }
 
     @Override

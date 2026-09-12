@@ -5,6 +5,7 @@ import com.github.stephengold.joltjni.RVec3;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.site21.bittermelon.common.content.entities.ragdoll.RagdollEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.player.PlayerModel;
@@ -14,25 +15,29 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.PlayerModelType;
+import net.minecraft.world.item.component.ResolvableProfile;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 
 public class RagdollRenderer extends EntityRenderer<RagdollEntity, RagdollRenderState> {
-    private final ModelPart head, torso, leftArm, rightArm, leftLeg, rightLeg;
+    private final ModelPart head, torso, leftArm, rightArm, leftLeg, rightLeg, leftArmSlim, rightArmSlim;
     private final Quaternionf quatA = new Quaternionf();
     private final Quaternionf quatB = new Quaternionf();
 
     public RagdollRenderer(EntityRendererProvider.Context context) {
         super(context);
         PlayerModel model = new PlayerModel(context.bakeLayer(ModelLayers.PLAYER), false);
+        PlayerModel modelSlim = new PlayerModel(context.bakeLayer(ModelLayers.PLAYER_SLIM), true);
         head = model.head;
         torso = model.body;
         leftArm = model.leftArm;
         rightArm = model.rightArm;
         leftLeg = model.leftLeg;
         rightLeg = model.rightLeg;
+        leftArmSlim = modelSlim.leftArm;
+        rightArmSlim = modelSlim.rightArm;
     }
 
     @Override
@@ -62,6 +67,13 @@ public class RagdollRenderer extends EntityRenderer<RagdollEntity, RagdollRender
             quatA.slerp(quatB, partialTicks);
             state.partRotations[i].set(quatA.x, quatA.y, quatA.z, quatA.w);
         }
+
+        try {
+            // If skin is not already in cache, a default skin will be used until cache resolves
+            state.skin = Minecraft.getInstance().playerSkinRenderCache().getOrDefault(ResolvableProfile.createUnresolved(entity.getPlayerUUID())).playerSkin();
+        } catch (Exception _) {
+            // This should never occur, but if for some reason it does, there is a default skin state to fall back to
+        }
     }
 
     @Override
@@ -69,8 +81,13 @@ public class RagdollRenderer extends EntityRenderer<RagdollEntity, RagdollRender
         super.submit(state, poseStack, collector, camera);
         submitPart(state, 0, head, poseStack, collector);
         submitPart(state, 1, torso, poseStack, collector);
-        submitPart(state, 2, leftArm, poseStack, collector);
-        submitPart(state, 3, rightArm, poseStack, collector);
+        if (state.skin.model() == PlayerModelType.SLIM) {
+            submitPart(state, 2, leftArmSlim, poseStack, collector);
+            submitPart(state, 3, rightArmSlim, poseStack, collector);
+        } else {
+            submitPart(state, 2, leftArm, poseStack, collector);
+            submitPart(state, 3, rightArm, poseStack, collector);
+        }
         submitPart(state, 4, leftLeg, poseStack, collector);
         submitPart(state, 5, rightLeg, poseStack, collector);
 
@@ -97,7 +114,7 @@ public class RagdollRenderer extends EntityRenderer<RagdollEntity, RagdollRender
         };
         poseStack.translate(0.0f, offsetY, 0.0f);
 
-        collector.submitModelPart(part, poseStack, RenderTypes.entityCutout(DefaultPlayerSkin.getDefaultTexture()), state.lightCoords, OverlayTexture.NO_OVERLAY, null);
+        collector.submitModelPart(part, poseStack, RenderTypes.entityCutout(state.skin.body().texturePath()), state.lightCoords, OverlayTexture.NO_OVERLAY, null);
 
         poseStack.popPose();
     }
