@@ -40,8 +40,8 @@ public class PlayerModelMixin {
             leftArm.addOrReplaceChild(
                     "left_hand",
                     CubeListBuilder.create()
-                            .texOffs(32, 57)
-                            .addBox(-1.0F, 7.0F, -2.0F, 3.0F, 3.0F, 4.0F, scale),
+                            .texOffs(32, 48)
+                            .addBox(-1.0F, -2.0F, -2.0F, 3.0F, 12.0F, 4.0F, scale.extend(-0.001F)),
                     PartPose.ZERO
             );
 
@@ -62,8 +62,8 @@ public class PlayerModelMixin {
             rightArm.addOrReplaceChild(
                     "right_hand",
                     CubeListBuilder.create()
-                            .texOffs(40, 25)
-                            .addBox(-2.0F, 7.0F, -2.0F, 3.0F, 3.0F, 4.0F, scale),
+                            .texOffs(40, 16)
+                            .addBox(-2.0F, -2.0F, -2.0F, 3.0F, 12.0F, 4.0F, scale.extend(-0.001F)),
                     PartPose.ZERO
             );
 
@@ -85,8 +85,8 @@ public class PlayerModelMixin {
             leftArm.addOrReplaceChild(
                     "left_hand",
                     CubeListBuilder.create()
-                            .texOffs(32, 57)
-                            .addBox(-1.0F, 7.0F, -2.0F, 4.0F, 3.0F, 4.0F, scale),
+                            .texOffs(32, 48)
+                            .addBox(-1.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, scale.extend(-0.001F)),
                     PartPose.ZERO
             );
 
@@ -108,8 +108,8 @@ public class PlayerModelMixin {
                     "right_hand",
                     CubeListBuilder.create()
                             .texOffs(40, 16)
-                            .addBox(-8.0F, -18.0F, -2.0F, 4.0F, 3.0F, 4.0F, new CubeDeformation(0.0F)),
-                    PartPose.offset(5.0F, 25.0F, 0.0F)
+                            .addBox(-3.0F, -2.0F, -2.0F, 4.0F, 12.0F, 4.0F, scale.extend(-0.001F)),
+                    PartPose.ZERO
             );
         }
     }
