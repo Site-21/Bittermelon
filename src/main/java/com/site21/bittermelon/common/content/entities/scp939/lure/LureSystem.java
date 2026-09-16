@@ -34,7 +34,9 @@ public class LureSystem {
         this.characters = characters;
     }
 
-    public LureSystem() {}
+    public LureSystem() {
+        characters = new ArrayList<>();
+    }
 
     public LureScene createScene(Entity entity, LureType type) {
         RandomSource random = entity.getRandom();
