@@ -9,13 +9,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.player.PlayerModel;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
@@ -64,18 +65,50 @@ public class RagdollRenderer extends EntityRenderer<RagdollEntity, RagdollRender
             state.partRotations[i].set(quatA.x, quatA.y, quatA.z, quatA.w);
         }
 
+        if (entity.getOwner() instanceof AbstractClientPlayer owner) {
+            state.playerOwner = true;
+        } else {
+            state.playerOwner = false;
+            return;
+        }
+
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == entity.getOwner() && mc.options.getCameraType().isFirstPerson()) {
+        if (mc.player == owner && mc.options.getCameraType().isFirstPerson()) {
             state.isFirstPersonView = true;
+        }
+
+        if (mc.getEntityRenderDispatcher().getRenderer(owner) instanceof LivingEntityRenderer playerRenderer) {
+            if (playerRenderer.getModel() instanceof PlayerModel playerModel) {
+                state.head = playerModel.head;
+                state.leftArm = playerModel.leftArm;
+                state.rightArm = playerModel.rightArm;
+                state.torso = playerModel.body;
+                state.leftLeg = playerModel.leftLeg;
+                state.rightLeg = playerModel.rightLeg;
+                if (owner instanceof AbstractClientPlayer avatar) {
+                    state.texture = avatar.getSkin().body().texturePath();
+                }
+            }
         }
     }
 
     @Override
     public void submit(RagdollRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         super.submit(state, poseStack, collector, camera);
-        if (!state.isFirstPersonView) {
-            submitPart(state, 0, head, poseStack, collector);
+
+        if (state.playerOwner) {
+            if (!state.isFirstPersonView) {
+                submitPart(state, 0, state.head, poseStack, collector);
+            }
+            submitPart(state, 1, state.torso, poseStack, collector);
+            submitPart(state, 2, state.leftArm, poseStack, collector);
+            submitPart(state, 3, state.rightArm, poseStack, collector);
+            submitPart(state, 4, state.leftLeg, poseStack, collector);
+            submitPart(state, 5, state.rightLeg, poseStack, collector);
+            return;
         }
+
+        submitPart(state, 0, head, poseStack, collector);
         submitPart(state, 1, torso, poseStack, collector);
         submitPart(state, 2, leftArm, poseStack, collector);
         submitPart(state, 3, rightArm, poseStack, collector);
@@ -84,6 +117,8 @@ public class RagdollRenderer extends EntityRenderer<RagdollEntity, RagdollRender
     }
 
     private void submitPart(RagdollRenderState state, int i, ModelPart part, PoseStack poseStack, SubmitNodeCollector collector) {
+        part.resetPose();
+
         poseStack.pushPose();
 
         RVec3 pos = state.partPositions[i];
@@ -104,7 +139,7 @@ public class RagdollRenderer extends EntityRenderer<RagdollEntity, RagdollRender
         };
         poseStack.translate(0.0f, offsetY, 0.0f);
 
-        collector.submitModelPart(part, poseStack, RenderTypes.entityCutout(DefaultPlayerSkin.getDefaultTexture()), state.lightCoords, OverlayTexture.NO_OVERLAY, null);
+        collector.submitModelPart(part, poseStack, RenderTypes.entityCutout(state.texture), state.lightCoords, OverlayTexture.NO_OVERLAY, null);
 
         poseStack.popPose();
     }
