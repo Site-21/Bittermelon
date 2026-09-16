@@ -98,7 +98,7 @@ public class ClientEvents {
     }
 
     @SubscribeEvent
-    public static void onRenderLiving(RenderLivingEvent.@NotNull Post<?, ?, ?> event) {
+    public static void onRenderLivingPost(RenderLivingEvent.@NotNull Post<?, ?, ?> event) {
         if (event.getRenderer().getModel() instanceof HumanoidModel<?> model) {
             float renderWidth = event.getRenderState().getRenderDataOrDefault(ClientSetup.ENTITY_WIDTH, 0.0f);
 
@@ -173,7 +173,7 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onComputeCameraAngles(ViewportEvent.ComputeCameraAngles event) {
-        if (!(event.getCamera().entity() instanceof RagdollEntity ragdoll)) return;
+        if (!(event.getCamera().entity().getVehicle() instanceof RagdollEntity ragdoll)) return;
 
         Quat prevRot = ragdoll.getPrevRot(0);
         Quat curRot = ragdoll.getCurRot(0);

@@ -9,15 +9,11 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
-import static com.site21.bittermelon.common.systems.stumble.StumbleHandler.isStunned;
-import static com.site21.bittermelon.init.neoforge.BitterMobEffects.FALLEN;
 import static com.site21.bittermelon.init.neoforge.BitterSounds.FALL;
 
 public class FallenEffect extends MobEffect {
@@ -46,12 +42,12 @@ public class FallenEffect extends MobEffect {
 
     @Override
     public boolean applyEffectTick(@NotNull ServerLevel level, @NotNull LivingEntity entity, int amplifier) {
-        if (!isStunned(entity) && !(entity instanceof Player)) {
-            if (entity.getPose() != Pose.STANDING) {
-                entity.setPose(Pose.STANDING);
-            }
-            entity.removeEffect(FALLEN);
-        }
+//        if (!isStunned(entity) && !(entity instanceof Player)) {
+//            if (entity.getPose() != Pose.STANDING) {
+//                entity.setPose(Pose.STANDING);
+//            }
+//            entity.removeEffect(FALLEN);
+//        }
 
         return true;
     }

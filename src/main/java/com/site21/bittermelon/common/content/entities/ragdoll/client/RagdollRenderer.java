@@ -5,6 +5,7 @@ import com.github.stephengold.joltjni.RVec3;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import com.site21.bittermelon.common.content.entities.ragdoll.RagdollEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.player.PlayerModel;
@@ -62,18 +63,24 @@ public class RagdollRenderer extends EntityRenderer<RagdollEntity, RagdollRender
             quatA.slerp(quatB, partialTicks);
             state.partRotations[i].set(quatA.x, quatA.y, quatA.z, quatA.w);
         }
+
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == entity.getOwner() && mc.options.getCameraType().isFirstPerson()) {
+            state.isFirstPersonView = true;
+        }
     }
 
     @Override
     public void submit(RagdollRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         super.submit(state, poseStack, collector, camera);
-        submitPart(state, 0, head, poseStack, collector);
+        if (!state.isFirstPersonView) {
+            submitPart(state, 0, head, poseStack, collector);
+        }
         submitPart(state, 1, torso, poseStack, collector);
         submitPart(state, 2, leftArm, poseStack, collector);
         submitPart(state, 3, rightArm, poseStack, collector);
         submitPart(state, 4, leftLeg, poseStack, collector);
         submitPart(state, 5, rightLeg, poseStack, collector);
-
     }
 
     private void submitPart(RagdollRenderState state, int i, ModelPart part, PoseStack poseStack, SubmitNodeCollector collector) {

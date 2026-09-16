@@ -19,6 +19,7 @@ import com.site21.bittermelon.common.content.entities.chicken.client.ChickenRend
 import com.site21.bittermelon.common.content.entities.fluidprojectile.FluidProjectileRenderer;
 import com.site21.bittermelon.common.content.entities.mimicplayer.Mimic;
 import com.site21.bittermelon.common.content.entities.mimicplayer.client.MimicRenderer;
+import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.content.entities.ragdoll.client.RagdollRenderer;
 import com.site21.bittermelon.common.content.entities.scp025fr.client.SCP025FRRenderer;
 import com.site21.bittermelon.common.content.entities.scp131.client.SCP131Renderer;
@@ -253,6 +254,12 @@ public class ClientSetup {
                         renderState.setRenderData(BROKEN_JAW, render);
                     }
                 }
+        );
+
+        event.registerEntityModifier(
+                new TypeToken<LivingEntityRenderer<LivingEntity, LivingEntityRenderState, ?>>() {
+                },
+                (entity, state) -> state.isInvisible = state.isInvisible || RagdollUtil.isRagdolled(entity)
         );
     }
 

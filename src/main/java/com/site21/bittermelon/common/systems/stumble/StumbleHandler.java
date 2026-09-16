@@ -1,12 +1,10 @@
 package com.site21.bittermelon.common.systems.stumble;
 
-import com.site21.bittermelon.common.content.entities.mimicplayer.Mimic;
 import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.systems.character.Character;
 import com.site21.bittermelon.common.systems.character.CharacterManager;
 import com.site21.bittermelon.common.systems.medical.legacy.medicalstats.MedicalStats;
 import com.site21.bittermelon.init.neoforge.BitterMobEffects;
-import com.site21.bittermelon.networking.client.ClearForcedPose;
 import com.site21.bittermelon.networking.client.SetForcedPose;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -41,7 +39,6 @@ public class StumbleHandler {
      */
     public static void stumble(@NotNull LivingEntity entity, int length, Vec3 pushDirection) {
         if (entity.hasEffect(FALLEN)) return;
-
         if (entity.level().isClientSide()) return;
 
         MedicalStats medicalStats = entity.getData(MEDICAL_STATS);
@@ -52,17 +49,10 @@ public class StumbleHandler {
             length = -1;
         }
 
-        switch (entity) {
-            case Mimic mimic -> RagdollUtil.ragdollWithDiscard(mimic, pushDirection);
-            case ServerPlayer player -> RagdollUtil.ragdollPlayer(player, pushDirection);
-            default -> {
-            }
-        }
+        addStunEffect(entity, length);
+        announceFall(entity);
 
-//        entity.addEffect(new MobEffectInstance(FALLEN, MobEffectInstance.INFINITE_DURATION, 0, false, false));
-//        motion(entity, pushDirection);
-//        addStunEffect(entity, length);
-//        announceFall(entity);
+        RagdollUtil.ragdoll(entity, pushDirection);
     }
 
     /**
@@ -148,11 +138,8 @@ public class StumbleHandler {
         if (player == null) return;
 
         if (!isStunned(player)) {
-            player.removeEffect(FALLEN);
-            if (player instanceof ServerPlayer serverPlayer) {
-                serverPlayer.setForcedPose(null);
-                PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, new ClearForcedPose(uuid));
-            }
+            assert player.getVehicle() != null;
+            player.getVehicle().discard();
         }
     }
 
@@ -162,8 +149,7 @@ public class StumbleHandler {
     }
 
     public static boolean isStumbled(@NotNull Entity entity) {
-        if (!(entity instanceof LivingEntity livingEntity)) return false;
-        return livingEntity.hasEffect(FALLEN);
+        return RagdollUtil.isRagdolled(entity);
     }
 
     public static boolean canMove(@NotNull Entity entity) {

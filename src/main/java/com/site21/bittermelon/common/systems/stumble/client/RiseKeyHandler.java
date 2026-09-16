@@ -1,5 +1,6 @@
 package com.site21.bittermelon.common.systems.stumble.client;
 
+import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.systems.stumble.StumbleHandler;
 import com.site21.bittermelon.common.systems.stumble.networking.AttemptToRise;
 import net.minecraft.client.Minecraft;
@@ -18,7 +19,7 @@ public class RiseKeyHandler {
         if (player == null) return;
 
         UUID uuid = player.getUUID();
-        if (StumbleHandler.isStumbled(player)) {
+        if (RagdollUtil.isRagdolled(player)) {
             if (StumbleHandler.isStunned(player)) return;
 
             if (Minecraft.getInstance().options.keyJump.isDown()) {

@@ -19,7 +19,7 @@ public class CameraMixin {
     )
     private void bittermelon$offsetCamera(Camera camera, double x, double y, double z, Operation<Void> original,
                                           @Local(argsOnly = true) float partialTicks) {
-        if (!(camera.entity() instanceof RagdollEntity ragdollEntity)) {
+        if (!(camera.entity().getVehicle() instanceof RagdollEntity ragdollEntity)) {
             original.call(camera, x, y, z);
             return;
         }

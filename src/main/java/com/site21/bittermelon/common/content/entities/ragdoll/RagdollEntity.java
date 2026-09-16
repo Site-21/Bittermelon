@@ -3,15 +3,21 @@ package com.site21.bittermelon.common.content.entities.ragdoll;
 import com.github.stephengold.joltjni.Quat;
 import com.github.stephengold.joltjni.RVec3;
 import com.github.stephengold.joltjni.Vec3;
+import com.site21.bittermelon.Bittermelon;
 import com.site21.bittermelon.common.content.entities.ragdoll.client.RagdollTransformation;
 import com.site21.bittermelon.common.physics.PhysicsManager;
 import com.site21.bittermelon.init.neoforge.BitterDataSerializers;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -24,11 +30,13 @@ public class RagdollEntity extends Entity {
     public Ragdoll ragdoll;
     public static final EntityDataAccessor<List<RagdollTransformation>> PART_TRANSFORMATIONS =
             SynchedEntityData.defineId(RagdollEntity.class, BitterDataSerializers.RAGDOLL_TRANSFORMATIONS.get());
+    public static final EntityDataAccessor<Integer> OWNER_ID = SynchedEntityData.defineId(RagdollEntity.class, EntityDataSerializers.INT);
     private Vec3 pushDirection = new Vec3();
     private final RVec3[] prevPos = new RVec3[PART_COUNT];
     private final RVec3[] curPos = new RVec3[PART_COUNT];
     private final Quat[] prevRot = new Quat[PART_COUNT];
     private final Quat[] curRot = new Quat[PART_COUNT];
+    private Entity owner;
 
     public RagdollEntity(EntityType<?> type, Level level) {
         super(type, level);
@@ -71,7 +79,7 @@ public class RagdollEntity extends Entity {
         ragdoll.addUniformVelocity(pushDirection);
         pushDirection = new Vec3();
 
-        RVec3 torsoPos =  ragdoll.getPart(1).getPosition();
+        RVec3 torsoPos = ragdoll.getPart(1).getPosition();
         setPos(torsoPos.xx(), torsoPos.yy(), torsoPos.zz());
 
         List<RagdollTransformation> updated = new ArrayList<>(6);
@@ -111,6 +119,7 @@ public class RagdollEntity extends Entity {
             initial.add(new RagdollTransformation());
         }
         entityData.define(PART_TRANSFORMATIONS, initial);
+        entityData.define(OWNER_ID, -1);
     }
 
     @Override
@@ -118,14 +127,70 @@ public class RagdollEntity extends Entity {
         return false;
     }
 
+    public void clearOwner() {
+        if (owner != null) {
+            owner.setInvisible(false);
+            owner.stopRiding();
+            owner = null;
+        }
+        entityData.set(OWNER_ID, -1);
+    }
+
+    public void clearOwnerNoOwnerUpdate() {
+        owner = null;
+        entityData.set(OWNER_ID, -1);
+    }
+
+    public void setOwner(Entity owner) {
+        owner.setInvisible(true);
+        owner.startRiding(this);
+
+        entityData.set(OWNER_ID, owner.getId());
+        this.owner = owner;
+    }
+
+    public Entity getOwner() {
+        if (owner == null && entityData.get(OWNER_ID) != -1) {
+            Entity entity = level().getEntity(entityData.get(OWNER_ID));
+            if (entity != null) {
+                owner = entity;
+            } else {
+                Bittermelon.LOGGER.error("RagdollEntity has invalid owner ID: {}", entityData.get(OWNER_ID));
+                entityData.set(OWNER_ID, -1);
+            }
+        }
+
+        return owner;
+    }
+
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
-
+        input.read("owner", UUIDUtil.CODEC).ifPresent(uuid -> {
+            if (level() instanceof ServerLevel level) {
+                Entity entity = level.getEntity(uuid);
+                if (entity != null) {
+                    setOwner(entity);
+                }
+            }
+        });
     }
 
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
+        if (owner != null) {
+            output.store("owner", UUIDUtil.CODEC, owner.getUUID());
+        }
+    }
 
+    @Override
+    public InteractionResult interact(Player player, InteractionHand hand, net.minecraft.world.phys.Vec3 location) {
+        Entity owner = getOwner();
+        return owner != null ? owner.interact(player, hand, location) : super.interact(player, hand, location);
+    }
+
+    @Override
+    public boolean isPickable() {
+        return true;
     }
 
     @Override
@@ -134,7 +199,36 @@ public class RagdollEntity extends Entity {
     }
 
     @Override
+    protected void removePassenger(Entity passenger) {
+        if (passenger == getOwner()) {
+            clearOwnerNoOwnerUpdate();
+        }
+        super.removePassenger(passenger);
+    }
+
+    @Override
+    public void positionRider(Entity passenger, MoveFunction moveFunction) {
+        if (!hasPassenger(passenger)) return;
+
+        RVec3 torsoPos;
+        if (level().isClientSide()) {
+            torsoPos = curPos[1];
+        } else if (ragdoll != null) {
+            torsoPos = ragdoll.getPart(1).getPosition();
+        } else {
+            moveFunction.accept(passenger, getX(), getY(), getZ());
+            return;
+        }
+
+        moveFunction.accept(passenger, torsoPos.xx(), torsoPos.yy(), torsoPos.zz());
+    }
+
+    @Override
     public void remove(RemovalReason reason) {
+        if (getOwner() != null) {
+            owner.setInvisible(false);
+        }
+
         super.remove(reason);
         if (ragdoll != null && !level().isClientSide()) {
             ragdoll.destroy();

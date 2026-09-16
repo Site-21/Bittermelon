@@ -1,6 +1,7 @@
 package com.site21.bittermelon.common.events;
 
 import com.site21.bittermelon.Bittermelon;
+import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.content.items.clownhammer.ClownHammer;
 import com.site21.bittermelon.common.content.items.scps.scp377.FortuneHandler;
 import com.site21.bittermelon.common.physics.PhysicsManager;
@@ -41,6 +42,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.EntityMountEvent;
 import net.neoforged.neoforge.event.entity.living.LivingBreatheEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
@@ -297,6 +299,17 @@ public class CommonEvents {
             Component text = Component.literal("You struggle to remember what just happened.").withStyle(ChatFormatting.RED);
             player.sendSystemMessage(text, true);
             player.sendSystemMessage(text);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onMount(EntityMountEvent event) {
+        if (event.isDismounting()
+                && event.getEntityMounting() instanceof Player player
+                && player.isShiftKeyDown()
+                && RagdollUtil.isRagdolled(player)
+        ) {
+            event.setCanceled(true);
         }
     }
 }

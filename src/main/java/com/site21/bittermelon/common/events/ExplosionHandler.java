@@ -1,7 +1,6 @@
 package com.site21.bittermelon.common.events;
 
 import com.site21.bittermelon.Bittermelon;
-import com.site21.bittermelon.common.content.entities.mimicplayer.Mimic;
 import com.site21.bittermelon.common.content.entities.ragdoll.RagdollEntity;
 import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.content.items.scps.scp2398.SCP2398Item;
@@ -14,9 +13,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
@@ -62,12 +61,10 @@ public class ExplosionHandler {
 
         for (Entity entity : affectedEntities) {
             Vec3 force = entity.position().subtract(explosion.center()).normalize().scale(explosion.radius() * 5);
-            switch (entity) {
-                case Mimic mimic -> RagdollUtil.ragdollWithDiscard(mimic, force);
-                case RagdollEntity ragdoll -> ragdoll.addMotion(force);
-                case ServerPlayer player -> RagdollUtil.ragdollPlayer(player, force);
-                default -> {
-                }
+            if (entity instanceof LivingEntity living) {
+                RagdollUtil.ragdoll(living, force);
+            } else if (entity instanceof RagdollEntity ragdoll) {
+                ragdoll.addMotion(force);
             }
         }
 

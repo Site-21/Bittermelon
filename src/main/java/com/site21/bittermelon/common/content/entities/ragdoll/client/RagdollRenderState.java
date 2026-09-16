@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.entity.state.EntityRenderState;
 public class RagdollRenderState extends EntityRenderState {
     public final RVec3[] partPositions = new RVec3[6];
     public final Quat[] partRotations = new Quat[6];
+    public boolean isFirstPersonView = false;
 
     public RagdollRenderState() {
         for (int i = 0; i < 6; i++) {

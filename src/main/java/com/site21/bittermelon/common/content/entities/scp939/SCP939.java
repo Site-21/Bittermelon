@@ -19,7 +19,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
@@ -211,11 +210,7 @@ public class SCP939 extends BitterMob<SCP939> {
         if (knockback > 1.0f && target instanceof LivingEntity livingTarget) {
             float strength = knockback * 2.5f;
             Vec3 motion = new Vec3(Mth.sin(getYRot() * (float) (Math.PI / 180.0)), 0, -Mth.cos(getYRot() * (float) (Math.PI / 180.0))).scale(strength);
-            if (livingTarget instanceof ServerPlayer player) {
-                RagdollUtil.ragdollPlayer(player, motion);
-            } else {
-                RagdollUtil.ragdollWithDiscard(livingTarget, motion);
-            }
+            RagdollUtil.ragdoll(livingTarget, motion);
         }
     }
 
