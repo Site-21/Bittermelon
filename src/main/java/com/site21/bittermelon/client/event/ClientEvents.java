@@ -44,6 +44,8 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import static com.site21.bittermelon.client.event.ClientSetup.RAGDOLLED;
+
 @EventBusSubscriber(modid = Bittermelon.MOD_ID, value = Dist.CLIENT)
 public class ClientEvents {
 
@@ -95,6 +97,13 @@ public class ClientEvents {
         RiseProgressBar.extract(event.getGuiGraphics());
         PhoneTipRenderer.extractPhoneTip(event.getGuiGraphics());
         WireOverlayExtractor.extractWiringOverlay(event.getGuiGraphics());
+    }
+
+    @SubscribeEvent
+    public static void onRenderLivingPre(RenderLivingEvent.@NotNull Pre<?, ?, ?> event) {
+        if (event.getRenderState().getRenderDataOrDefault(RAGDOLLED, false)) {
+            event.setCanceled(true);
+        }
     }
 
     @SubscribeEvent

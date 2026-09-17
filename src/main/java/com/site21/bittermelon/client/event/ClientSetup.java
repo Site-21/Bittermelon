@@ -148,6 +148,10 @@ public class ClientSetup {
             Bittermelon.identifier("root_part")
     );
 
+    public static final ContextKey<Boolean> RAGDOLLED = new ContextKey<>(
+            Bittermelon.identifier("ragdolled")
+    );
+
     @SubscribeEvent
     public static void fmlSetup(FMLClientSetupEvent event) {
 //        ItemBlockRenderTypes.setRenderLayer(SUBSTANCE_FLUID.get(), ChunkSectionLayer.TRANSLUCENT);
@@ -257,9 +261,8 @@ public class ClientSetup {
         );
 
         event.registerEntityModifier(
-                new TypeToken<LivingEntityRenderer<LivingEntity, LivingEntityRenderState, ?>>() {
-                },
-                (entity, state) -> state.isInvisible = state.isInvisible || RagdollUtil.isRagdolled(entity)
+                new TypeToken<LivingEntityRenderer<LivingEntity, LivingEntityRenderState, ?>>() {},
+                (entity, state) -> state.setRenderData(RAGDOLLED, RagdollUtil.isRagdolled(entity))
         );
     }
 
