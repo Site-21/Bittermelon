@@ -7,6 +7,7 @@ import com.site21.bittermelon.client.render.ShaderManager;
 import com.site21.bittermelon.client.render.TypingIndicatorRenderer;
 import com.site21.bittermelon.common.content.blocks.electronics.intercom.client.PhoneTipRenderer;
 import com.site21.bittermelon.common.content.entities.ragdoll.RagdollEntity;
+import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.content.items.wire.client.WireFeatureRenderer;
 import com.site21.bittermelon.common.content.items.wire.client.WireOverlayExtractor;
 import com.site21.bittermelon.common.systems.atmosphere.data.AtmosInstancesData;
@@ -81,6 +82,10 @@ public class ClientEvents {
         if (player == null) return;
 
         if (player.hasData(BitterAttachmentTypes.CARRIED_PASSENGER)) {
+            event.setCanceled(true);
+        }
+
+        if (RagdollUtil.isRagdolled(player)) {
             event.setCanceled(true);
         }
     }
