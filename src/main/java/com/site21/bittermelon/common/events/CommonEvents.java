@@ -4,7 +4,6 @@ import com.site21.bittermelon.Bittermelon;
 import com.site21.bittermelon.common.content.items.clownhammer.ClownHammer;
 import com.site21.bittermelon.common.content.items.scps.scp377.FortuneHandler;
 import com.site21.bittermelon.common.physics.PhysicsManager;
-import com.site21.bittermelon.common.systems.atmosphere.AtmosHandler;
 import com.site21.bittermelon.common.systems.atmosphere.data.AtmosInstancesData;
 import com.site21.bittermelon.common.systems.atmosphere.networking.AtmosChunkUpdate;
 import com.site21.bittermelon.common.systems.blockdamage.BlockDamageUtil;
@@ -286,9 +285,9 @@ public class CommonEvents {
 
     @SubscribeEvent
     public static void onBlockNotifyNeighbors(BlockEvent.NeighborNotifyEvent event) {
-        if (event.getLevel() instanceof ServerLevel serverLevel) {
-            AtmosHandler.onBlockUpdate(serverLevel, event.getPos());
-        }
+//        if (event.getLevel() instanceof ServerLevel serverLevel) {
+//            AtmosHandler.onBlockUpdate(serverLevel, event.getPos());
+//        }
     }
 
     @SubscribeEvent
