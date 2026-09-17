@@ -1,5 +1,6 @@
 package com.site21.bittermelon.mixin;
 
+import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.systems.carry.CarryHandler;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
@@ -7,6 +8,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(Player.class)
 public abstract class PlayerMixin extends LivingEntity {
@@ -52,5 +56,10 @@ public abstract class PlayerMixin extends LivingEntity {
                 living.setYBodyRot(this.yBodyRot);
             }
         }
+    }
+
+    @Inject(method = "wantsToStopRiding()Z", at = @At("TAIL"), cancellable = true)
+    private void wantsToStopRiding(CallbackInfoReturnable<Boolean> cir) {
+        cir.setReturnValue(cir.getReturnValue() && !RagdollUtil.isRagdolled(this));
     }
 }
