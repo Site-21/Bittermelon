@@ -52,7 +52,7 @@ public class Pull<E extends Mob> extends AnimatableMeleeAttack<E> {
         if (!entity.getSensing().hasLineOfSight(ragdoll)) return;
 
         double strength = dragStrength.applyAsDouble(entity, target);
-        Vec3 pullDirection = entity.getLookAngle().multiply(-strength, 1, -strength);
+        Vec3 pullDirection = entity.getHeadLookAngle().multiply(-strength, 1, -strength);
         ragdoll.addMotion(pullDirection);
 
         entity.level().playSound(null, entity.getOnPos(), DRAG.value(), SoundSource.AMBIENT);
