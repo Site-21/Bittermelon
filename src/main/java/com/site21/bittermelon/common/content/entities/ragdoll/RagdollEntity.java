@@ -129,7 +129,6 @@ public class RagdollEntity extends Entity {
 
     public void clearOwner() {
         if (owner != null) {
-            owner.setInvisible(false);
             owner.stopRiding();
             owner = null;
         }
@@ -142,7 +141,6 @@ public class RagdollEntity extends Entity {
     }
 
     public void setOwner(Entity owner) {
-        owner.setInvisible(true);
         owner.startRiding(this);
 
         entityData.set(OWNER_ID, owner.getId());
@@ -225,10 +223,6 @@ public class RagdollEntity extends Entity {
 
     @Override
     public void remove(RemovalReason reason) {
-        if (getOwner() != null) {
-            owner.setInvisible(false);
-        }
-
         super.remove(reason);
         if (ragdoll != null && !level().isClientSide()) {
             ragdoll.destroy();

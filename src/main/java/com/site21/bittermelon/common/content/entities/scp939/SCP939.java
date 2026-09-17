@@ -6,6 +6,7 @@ import com.site21.bittermelon.common.content.entities.scp939.lure.LureSystem;
 import com.site21.bittermelon.common.systems.ai.base.BitterMob;
 import com.site21.bittermelon.common.systems.ai.base.Need;
 import com.site21.bittermelon.common.systems.ai.base.NeedInstance;
+import com.site21.bittermelon.common.systems.ai.behavior.attack.Pull;
 import com.site21.bittermelon.common.systems.ai.behavior.attack.YankItem;
 import com.site21.bittermelon.common.systems.ai.sensors.VisionConeSensor;
 import com.site21.bittermelon.common.systems.ai.vibration.BitterAngerManagement;
@@ -168,8 +169,11 @@ public class SCP939 extends BitterMob<SCP939> {
                 new OneRandomBehaviour<>(
                         new AnimatableMeleeAttack<>(0),
                         new LeapAtTarget<>(10)
-                                .jumpStrength(1.2f),
-                        new YankItem<>(0)
+                                .jumpStrength(1.2f)
+                                .canAttack((entity, target) -> entity.distanceToSqr(target) > 4.0),
+                        new YankItem<>(0),
+                        new Pull<>(0)
+                                .cooldownFor(40, 60)
                 )
         );
     }

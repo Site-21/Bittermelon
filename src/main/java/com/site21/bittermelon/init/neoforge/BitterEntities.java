@@ -126,7 +126,7 @@ public class BitterEntities {
 
     public static final DeferredHolder<EntityType<?>, EntityType<RagdollEntity>> RAGDOLL = ENTITY_TYPES.register("ragdoll",
             () -> EntityType.Builder.of(RagdollEntity::new, MobCategory.MISC)
-                    .sized(0.6f, 1.8f)
+                    .sized(0.6f, 0.5f)
                     .noLootTable()
                     .build(ResourceKey.create(Registries.ENTITY_TYPE, Bittermelon.identifier("ragdoll"))));
 
