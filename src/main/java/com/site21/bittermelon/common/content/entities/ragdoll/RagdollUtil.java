@@ -8,15 +8,13 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.UUID;
-
 public final class RagdollUtil {
     public static void ragdollPlayer(ServerPlayer player) {
         ragdollPlayer(player, player.getDeltaMovement());
     }
 
     public static void ragdollPlayer(ServerPlayer player, Vec3 motion) {
-        RagdollEntity ragdoll = spawnRagdoll(player.level(), player.position(), motion, player.getUUID());
+        RagdollEntity ragdoll = spawnRagdoll(player.level(), player.position(), motion);
         player.setCamera(ragdoll);
         player.setGameMode(GameType.SPECTATOR);
     }
@@ -31,14 +29,9 @@ public final class RagdollUtil {
     }
 
     public static RagdollEntity spawnRagdoll(Level level, Vec3 pos, Vec3 velocity) {
-        return spawnRagdoll(level, pos, velocity, null);
-    }
-
-    public static RagdollEntity spawnRagdoll(Level level, Vec3 pos, Vec3 velocity, UUID id) {
         RagdollEntity ragdoll = BitterEntities.RAGDOLL.get().create(level, EntitySpawnReason.EVENT);
         assert ragdoll != null;
         ragdoll.setPos(pos.x, pos.y + 1, pos.z);
-        ragdoll.setPlayerUUID(id);
         ragdoll.addMotion(velocity);
         level.addFreshEntity(ragdoll);
         return ragdoll;
