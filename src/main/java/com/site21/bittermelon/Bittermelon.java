@@ -112,6 +112,7 @@ public class Bittermelon {
                 new NativeDynamicLibrary("windows/x86-64/com/github/stephengold", PlatformPredicate.WIN_X86_64)
         };
         loader.registerNativeLibraries(libraries).initPlatformLibrary();
+        loader.setLoggingEnabled(true);
         loader.loadLibrary(LoadingCriterion.CLEAN_EXTRACTION);
         JoltPhysicsObject.startCleaner();
         Jolt.registerDefaultAllocator();
