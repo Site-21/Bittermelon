@@ -167,10 +167,10 @@ public class SCP939 extends BitterMob<SCP939> {
                 new SetWalkTargetToAttackTarget<>()
                         .speedModifier(1.4f),
                 new OneRandomBehaviour<>(
-                        new AnimatableMeleeAttack<>(0),
+                        new AnimatableMeleeAttack<>(10),
                         new LeapAtTarget<>(10)
                                 .jumpStrength(1.2f)
-                                .canAttack((entity, target) -> entity.distanceToSqr(target) > 4.0),
+                                .canAttack((entity, target) -> entity.distanceToSqr(target) > 3.0),
                         new YankItem<>(0),
                         new Pull<>(0)
                                 .cooldownFor(40, 60)
