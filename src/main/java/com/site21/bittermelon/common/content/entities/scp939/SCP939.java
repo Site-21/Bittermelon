@@ -184,6 +184,7 @@ public class SCP939 extends BitterMob<SCP939> {
                         .whenStopping(entity -> setDisturbanceLocationIfNone(entity, entity.blockPosition(), 100))
                         .runFor(300, 600),
                 new AttemptLure()
+                        .cooldownFor(100)
         );
     }
 
@@ -257,8 +258,6 @@ public class SCP939 extends BitterMob<SCP939> {
             if (sourceEntity instanceof SCP939) return;
             angerManagement.increaseAnger(sourceEntity, 10);
         }
-
-        System.out.println("Received vibration! Current highest anger: " + angerManagement.getHighestAnger(level));
 
         if (angerManagement.getHighestAnger(level) < 80) {
 //            BehaviorUtils.setWalkAndLookTargetMemories(entity, sourcePos, 1.0f, 2);

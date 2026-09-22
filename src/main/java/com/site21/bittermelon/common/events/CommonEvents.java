@@ -1,6 +1,7 @@
 package com.site21.bittermelon.common.events;
 
 import com.site21.bittermelon.Bittermelon;
+import com.site21.bittermelon.common.content.entities.scp939.behavior.SweepArea;
 import com.site21.bittermelon.common.content.items.clownhammer.ClownHammer;
 import com.site21.bittermelon.common.content.items.scps.scp377.FortuneHandler;
 import com.site21.bittermelon.common.physics.PhysicsManager;
@@ -38,8 +39,10 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.VanillaGameEvent;
 import net.neoforged.neoforge.event.entity.living.LivingBreatheEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
@@ -297,5 +300,14 @@ public class CommonEvents {
             player.sendSystemMessage(text, true);
             player.sendSystemMessage(text);
         }
+    }
+
+    @SubscribeEvent
+    public static void onVanillaEvent(VanillaGameEvent event) {
+        if (event.getLevel().isClientSide()) return;
+        if (event.getCause() instanceof Player player && (player.isCreative() || player.isSpectator())) return;
+
+        Vec3 pos = event.getEventPosition();
+        SweepArea.addActivity(new BlockPos((int) pos.x, (int) pos.y, (int) pos.z), 1);
     }
 }

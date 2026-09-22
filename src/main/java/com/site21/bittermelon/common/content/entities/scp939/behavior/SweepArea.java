@@ -148,5 +148,11 @@ public class SweepArea extends ExtendedBehaviour<PathfinderMob> {
         return (x & 0xFFFFFFFFL) | ((long) z << 32);
     }
 
+    public static void addActivity(BlockPos pos, int amount) {
+        long key = gridKey(pos);
+        int currentActivity = ACTIVITY_GRID.getOrDefault(key, 0);
+        ACTIVITY_GRID.put(key, currentActivity + amount);
+    }
+
     private record Candidate(BlockPos pos, float score) {}
 }

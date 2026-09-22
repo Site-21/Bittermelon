@@ -5,6 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.site21.bittermelon.common.systems.character.Character;
 import com.site21.bittermelon.common.systems.character.CharacterUtil;
 import com.site21.bittermelon.util.LocalMessageUtil;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
@@ -22,6 +23,13 @@ public class LureSystem {
                             .fieldOf("characters")
                             .forGetter(LureSystem::getCharacters)
             ).apply(instance, LureSystem::new)
+    );
+
+    private static final List<FakeCharacter> FALLBACK_CHARACTERS = List.of(
+            new FakeCharacter("John", 0xFF0000),
+            new FakeCharacter("Bob", 0x00FF00),
+            new FakeCharacter("Jim", 0x0000FF),
+            new FakeCharacter("Tim", 0xFFFF00)
     );
 
     private static final Map<LureType, List<LurePool>> pools;
@@ -44,10 +52,27 @@ public class LureSystem {
         LurePool pool = poolList.get(random.nextInt(poolList.size()));
         List<LureDialogue> lines = new ArrayList<>();
         for (int i = 0; i < pool.dialogue().length; i++) {
-            UUID uuid = characters.get(random.nextInt(characters.size()));
-            lines.add(new LureDialogue(uuid, new ArrayList<>(Arrays.asList(pool.dialogue()[i]))));
+            LureDialogue dialogue;
+            List<String> messages = new ArrayList<>(Arrays.asList(pool.dialogue()[i]));
+            if (characters.isEmpty()) {
+                dialogue = getFallbackDialogue(random, messages);
+            } else {
+                UUID uuid = characters.get(random.nextInt(characters.size()));
+                Character character = CharacterUtil.getCharacter(entity.level(), uuid);
+                if (character == null) {
+                    dialogue = getFallbackDialogue(random, messages);
+                } else {
+                    dialogue = new LureDialogue(character.getName(), character.getEmoteColor(), messages);
+                }
+            }
+            lines.add(dialogue);
         }
         return new LureScene(type, lines, pool);
+    }
+
+    private LureDialogue getFallbackDialogue(RandomSource random, List<String> messages) {
+        FakeCharacter character = FALLBACK_CHARACTERS.get(random.nextInt(FALLBACK_CHARACTERS.size()));
+        return new LureDialogue(character.name(), character.color(), messages);
     }
 
     public void attemptLure(Entity entity, LureType type) {
@@ -83,13 +108,9 @@ public class LureSystem {
         LureDialogue dialogue = activeScene.lines().get(i);
         String message = dialogue.messages().remove(random.nextInt(dialogue.messages().size()));
 
-        Character character = CharacterUtil.getCharacter(entity.level(), dialogue.character());
-        if (character == null) {
-            activeScene = null;
-            return;
-        }
-
-        Component component = Component.literal(character.getName() + " " + message);
+        Component component = Component.literal(dialogue.characterName() + " says, ")
+                .withColor(dialogue.emoteColor())
+                .append(Component.literal("\"" + message + "\"").withStyle(ChatFormatting.WHITE));
         LocalMessageUtil.sendLocalMessage(entity, 16, component);
 
         if (dialogue.messages().isEmpty()) {
@@ -109,15 +130,18 @@ public class LureSystem {
         pools = new HashMap<>();
         pools.put(LureType.GENERIC, List.of(
                 new LurePool(
-                        new String[][] {
+                        new String[][]{
                                 {"Hello there!", "How are you doing?", "Nice to meet you!"},
                                 {"I hope you're having a good day.", "Stay safe out there!", "Take care!"}
                         },
-                        new SoundEvent[] {
+                        new SoundEvent[]{
                         },
                         100,
                         50
                 )
         ));
+    }
+
+    private record FakeCharacter(String name, int color) {
     }
 }

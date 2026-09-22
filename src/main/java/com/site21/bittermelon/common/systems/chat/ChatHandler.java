@@ -9,6 +9,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -119,7 +120,7 @@ public class ChatHandler {
     }
 
     public static void dispatch(RPMessage msg) {
-        ServerLevel level = msg.source().level();
+        if (!(msg.source.level() instanceof ServerLevel level)) return;
 
         if (msg.range() > WHISPER_RANGE && msg.hasDialogue()) {
             level.gameEvent(GameEvent.ENTITY_ACTION, msg.source().position(), GameEvent.Context.of(msg.source()));
@@ -220,7 +221,7 @@ public class ChatHandler {
 
     public record RPMessage(
             Character character,
-            ServerPlayer source,
+            Entity source,
             String verb,
             List<ChatSegment> segments,
             int range
