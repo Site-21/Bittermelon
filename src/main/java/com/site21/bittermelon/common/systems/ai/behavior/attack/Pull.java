@@ -1,8 +1,8 @@
 package com.site21.bittermelon.common.systems.ai.behavior.attack;
 
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollEntity;
 import com.site21.bittermelon.common.systems.character.Character;
 import com.site21.bittermelon.common.systems.character.CharacterManager;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollEntity;
 import com.site21.bittermelon.common.systems.stumble.StumbleHandler;
 import com.site21.bittermelon.util.LocalMessageUtil;
 import net.minecraft.network.chat.Component;

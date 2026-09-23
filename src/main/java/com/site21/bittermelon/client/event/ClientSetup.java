@@ -19,8 +19,6 @@ import com.site21.bittermelon.common.content.entities.chicken.client.ChickenRend
 import com.site21.bittermelon.common.content.entities.fluidprojectile.FluidProjectileRenderer;
 import com.site21.bittermelon.common.content.entities.mimicplayer.Mimic;
 import com.site21.bittermelon.common.content.entities.mimicplayer.client.MimicRenderer;
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
-import com.site21.bittermelon.common.content.entities.ragdoll.client.RagdollRenderer;
 import com.site21.bittermelon.common.content.entities.scp025fr.client.SCP025FRRenderer;
 import com.site21.bittermelon.common.content.entities.scp131.client.SCP131Renderer;
 import com.site21.bittermelon.common.content.entities.scp1507.client.SCP1507Renderer;
@@ -61,6 +59,8 @@ import com.site21.bittermelon.common.systems.personnel.registry.networking.AddPe
 import com.site21.bittermelon.common.systems.personnel.registry.networking.PersonnelClientPayloadHandler;
 import com.site21.bittermelon.common.systems.personnel.registry.networking.RemovePersonnelEntry;
 import com.site21.bittermelon.common.systems.personnel.registry.networking.UpdatePersonnelEntry;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
+import com.site21.bittermelon.common.systems.ragdoll.client.RagdollRenderer;
 import com.site21.bittermelon.common.systems.rage.client.RageRenderer;
 import com.site21.bittermelon.datagen.property.*;
 import com.site21.bittermelon.init.custom.BodyParts;

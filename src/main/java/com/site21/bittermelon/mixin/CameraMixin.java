@@ -4,7 +4,7 @@ import com.github.stephengold.joltjni.RVec3;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollEntity;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollEntity;
 import net.minecraft.client.Camera;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;

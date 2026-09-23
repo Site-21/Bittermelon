@@ -1,9 +1,9 @@
 package com.site21.bittermelon.common.systems.stumble;
 
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.systems.character.Character;
 import com.site21.bittermelon.common.systems.character.CharacterManager;
 import com.site21.bittermelon.common.systems.medical.legacy.medicalstats.MedicalStats;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
 import com.site21.bittermelon.init.neoforge.BitterMobEffects;
 import com.site21.bittermelon.networking.client.SetForcedPose;
 import net.minecraft.network.chat.Component;

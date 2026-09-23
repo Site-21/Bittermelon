@@ -1,11 +1,11 @@
 package com.site21.bittermelon.common.events;
 
 import com.site21.bittermelon.Bittermelon;
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollEntity;
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.content.items.scps.scp2398.SCP2398Item;
 import com.site21.bittermelon.common.systems.blockdamage.BlockDamageUtil;
 import com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluidBlockEntity;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollEntity;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.systems.syncsound.SyncSoundEvent;
 import com.site21.bittermelon.common.systems.syncsound.SyncSoundType;
 import net.minecraft.ChatFormatting;

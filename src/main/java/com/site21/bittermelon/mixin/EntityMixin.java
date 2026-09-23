@@ -1,6 +1,6 @@
 package com.site21.bittermelon.mixin;
 
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollEntity;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollEntity;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;

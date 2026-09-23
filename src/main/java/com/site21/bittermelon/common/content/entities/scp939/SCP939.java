@@ -1,6 +1,5 @@
 package com.site21.bittermelon.common.content.entities.scp939;
 
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.content.entities.scp939.behavior.*;
 import com.site21.bittermelon.common.content.entities.scp939.lure.LureSystem;
 import com.site21.bittermelon.common.systems.ai.base.BitterMob;
@@ -12,6 +11,7 @@ import com.site21.bittermelon.common.systems.ai.sensors.VisionConeSensor;
 import com.site21.bittermelon.common.systems.ai.vibration.BitterAngerManagement;
 import com.site21.bittermelon.common.systems.ai.vibration.BitterVibrationListener;
 import com.site21.bittermelon.common.systems.character.Character;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
 import com.site21.bittermelon.init.neoforge.BitterActivity;
 import com.site21.bittermelon.init.neoforge.BitterDataSerializers;
 import com.site21.bittermelon.init.neoforge.BitterMemoryTypes;

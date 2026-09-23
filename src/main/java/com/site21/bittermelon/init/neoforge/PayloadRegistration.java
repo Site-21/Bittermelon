@@ -40,6 +40,7 @@ import com.site21.bittermelon.common.systems.personnel.registry.networking.AddPe
 import com.site21.bittermelon.common.systems.personnel.registry.networking.RemovePersonnelEntry;
 import com.site21.bittermelon.common.systems.personnel.registry.networking.SyncPersonnelRegistry;
 import com.site21.bittermelon.common.systems.personnel.registry.networking.UpdatePersonnelEntry;
+import com.site21.bittermelon.common.systems.ragdoll.networking.RagdollPlayer;
 import com.site21.bittermelon.common.systems.roles.networking.AddRole;
 import com.site21.bittermelon.common.systems.stumble.networking.AttemptToRise;
 import com.site21.bittermelon.common.systems.telecomms.intercom.networking.AddIntercomToClient;
@@ -578,6 +579,12 @@ public class PayloadRegistration {
                 WoundPacket.TYPE,
                 WoundPacket.STREAM_CODEC,
                 WoundPacket::handle
+        );
+
+        registrar.playToServer(
+                RagdollPlayer.TYPE,
+                RagdollPlayer.STREAM_CODEC,
+                RagdollPlayer::handle
         );
     }
 }

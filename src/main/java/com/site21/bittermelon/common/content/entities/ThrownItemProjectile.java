@@ -1,8 +1,8 @@
 package com.site21.bittermelon.common.content.entities;
 
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollEntity;
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.content.items.scps.scp2398.SCP2398Item;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollEntity;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;

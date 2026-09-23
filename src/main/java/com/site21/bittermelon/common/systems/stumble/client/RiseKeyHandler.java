@@ -1,6 +1,6 @@
 package com.site21.bittermelon.common.systems.stumble.client;
 
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.systems.stumble.StumbleHandler;
 import com.site21.bittermelon.common.systems.stumble.networking.AttemptToRise;
 import net.minecraft.client.Minecraft;

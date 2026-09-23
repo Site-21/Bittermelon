@@ -46,11 +46,21 @@ public class BitterKeyBindings {
             )
     );
 
+    public static final Lazy<KeyMapping> RAGDOLL_KEY = Lazy.of(() ->
+            new KeyMapping(
+                    "Ragdoll",
+                    InputConstants.Type.KEYSYM,
+                    GLFW.GLFW_KEY_R,
+                    BITTERMELON_CATEGORY
+            )
+    );
+
     @SubscribeEvent
     public static void register(@NotNull RegisterKeyMappingsEvent event) {
         event.registerCategory(BITTERMELON_CATEGORY);
         event.register(HEALTH_SCREEN_KEY.get());
         event.register(THROW_ITEM_KEY.get());
         event.register(CHARACTER_KEY.get());
+        event.register(RAGDOLL_KEY.get());
     }
 }

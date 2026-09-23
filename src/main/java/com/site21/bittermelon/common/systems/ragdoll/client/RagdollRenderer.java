@@ -1,10 +1,10 @@
-package com.site21.bittermelon.common.content.entities.ragdoll.client;
+package com.site21.bittermelon.common.systems.ragdoll.client;
 
 import com.github.stephengold.joltjni.Quat;
 import com.github.stephengold.joltjni.RVec3;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollEntity;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;

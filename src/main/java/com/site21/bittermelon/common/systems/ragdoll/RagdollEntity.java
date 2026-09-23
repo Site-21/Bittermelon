@@ -1,11 +1,11 @@
-package com.site21.bittermelon.common.content.entities.ragdoll;
+package com.site21.bittermelon.common.systems.ragdoll;
 
 import com.github.stephengold.joltjni.Quat;
 import com.github.stephengold.joltjni.RVec3;
 import com.github.stephengold.joltjni.Vec3;
 import com.site21.bittermelon.Bittermelon;
-import com.site21.bittermelon.common.content.entities.ragdoll.client.RagdollTransformation;
 import com.site21.bittermelon.common.physics.PhysicsManager;
+import com.site21.bittermelon.common.systems.ragdoll.client.RagdollTransformation;
 import com.site21.bittermelon.init.neoforge.BitterDataSerializers;
 import com.site21.bittermelon.util.MathUtil;
 import net.minecraft.core.UUIDUtil;

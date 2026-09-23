@@ -1,4 +1,4 @@
-package com.site21.bittermelon.common.content.entities.ragdoll;
+package com.site21.bittermelon.common.systems.ragdoll;
 
 import com.github.stephengold.joltjni.*;
 import com.github.stephengold.joltjni.enumerate.EActivation;

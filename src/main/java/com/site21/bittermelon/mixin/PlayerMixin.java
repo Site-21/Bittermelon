@@ -1,7 +1,7 @@
 package com.site21.bittermelon.mixin;
 
-import com.site21.bittermelon.common.content.entities.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.systems.carry.CarryHandler;
+import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;

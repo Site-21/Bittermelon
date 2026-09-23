@@ -2,8 +2,8 @@ package com.site21.bittermelon.init.neoforge;
 
 import com.site21.bittermelon.Bittermelon;
 import com.site21.bittermelon.common.content.entities.cage.client.BlockInfo;
-import com.site21.bittermelon.common.content.entities.ragdoll.client.RagdollTransformation;
 import com.site21.bittermelon.common.content.entities.scp939.SCP939State;
+import com.site21.bittermelon.common.systems.ragdoll.client.RagdollTransformation;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;

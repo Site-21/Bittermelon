@@ -1,4 +1,4 @@
-package com.site21.bittermelon.common.content.entities.ragdoll.client;
+package com.site21.bittermelon.common.systems.ragdoll.client;
 
 import com.github.stephengold.joltjni.Body;
 import com.github.stephengold.joltjni.Quat;
