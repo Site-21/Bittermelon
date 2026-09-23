@@ -7,11 +7,13 @@ import com.site21.bittermelon.Bittermelon;
 import com.site21.bittermelon.common.content.entities.ragdoll.client.RagdollTransformation;
 import com.site21.bittermelon.common.physics.PhysicsManager;
 import com.site21.bittermelon.init.neoforge.BitterDataSerializers;
+import com.site21.bittermelon.util.MathUtil;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -202,6 +204,36 @@ public class RagdollEntity extends Entity {
             clearOwnerNoOwnerUpdate();
         }
         super.removePassenger(passenger);
+    }
+
+    public net.minecraft.world.phys.Vec3 getHeadPosition(float partialTicks) {
+        RVec3 pos;
+        if (level().isClientSide()) {
+            RVec3 prevPos = getPrevPos(0);
+            RVec3 curPos = getCurPos(0);
+            pos = new RVec3(
+                    Mth.lerp(partialTicks, prevPos.xx(), curPos.xx()),
+                    Mth.lerp(partialTicks, prevPos.yy(), curPos.yy()),
+                    Mth.lerp(partialTicks, prevPos.zz(), curPos.zz())
+            );
+        } else if (ragdoll != null) {
+            pos = ragdoll.getPart(0).getPosition();
+        } else {
+            return position();
+        }
+        return new net.minecraft.world.phys.Vec3(pos.xx(), pos.yy(), pos.zz());
+    }
+
+    public net.minecraft.world.phys.Vec3 getHeadForward(float partialTicks) {
+        Quat rot;
+        if (level().isClientSide()) {
+            rot = MathUtil.slerp(prevRot[0], curRot[0], partialTicks);
+        } else if (ragdoll != null) {
+            rot = ragdoll.getPart(0).getRotation();
+        } else {
+            return getLookAngle();
+        }
+        return MathUtil.rotate(rot, new net.minecraft.world.phys.Vec3(0, 0, 1));
     }
 
     @Override

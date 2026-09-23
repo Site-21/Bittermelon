@@ -123,6 +123,13 @@ public class Ragdoll {
         }
     }
 
+    public void addVelocity(int partIndex, Vec3 delta) {
+        BodyInterface bi = physicsSystem.getBodyInterface();
+        Body body = parts.get(partIndex);
+        bi.setAngularVelocity(body.getId(), Op.plus(bi.getAngularVelocity(body.getId()), delta));
+        bi.activateBody(body.getId());
+    }
+
     public void destroy() {
         BodyInterface bi = physicsSystem.getBodyInterface();
         for (Body body : parts) {
