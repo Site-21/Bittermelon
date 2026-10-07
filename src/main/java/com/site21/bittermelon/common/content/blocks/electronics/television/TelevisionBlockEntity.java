@@ -5,6 +5,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
+import static com.site21.bittermelon.init.custom.Medias.COLOR_TEST;
 import static com.site21.bittermelon.init.custom.Medias.MANAPHY;
 import static com.site21.bittermelon.init.neoforge.BitterBlockEntities.TELEVISION_BLOCK_ENTITY;
 
@@ -21,6 +22,6 @@ public class TelevisionBlockEntity extends BlockEntity {
     }
 
     public Holder<Media> getMedia() {
-        return MANAPHY;
+        return COLOR_TEST;
     }
 }

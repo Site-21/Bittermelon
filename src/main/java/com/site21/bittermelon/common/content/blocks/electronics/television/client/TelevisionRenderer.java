@@ -14,8 +14,10 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -25,6 +27,9 @@ import org.joml.Vector3f;
 import org.jspecify.annotations.Nullable;
 
 public class TelevisionRenderer implements BlockEntityRenderer<TelevisionBlockEntity, TelevisionRenderState> {
+    private static final float HALF_SIZE = 0.33f;
+    private static final float STANDING_Y_OFFSET = 0.125f;
+    private static final float WALL_Y_OFFSET = 0.128f;
     public static final WallAndGroundTransformations<Transformation> TRANSFORMATIONS = new WallAndGroundTransformations<>(
             TelevisionRenderer::createWallTransformation, TelevisionRenderer::createGroundTransformation, 16
     );
@@ -37,18 +42,28 @@ public class TelevisionRenderer implements BlockEntityRenderer<TelevisionBlockEn
                                    Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
         BlockState blockState = blockEntity.getBlockState();
-        state.powered = blockState.getValue(TelevisionBlock.POWERED);
-        if (blockState.getBlock() instanceof StandingTelevisionBlock) {
-            state.transformation = TRANSFORMATIONS.freeTransformations(blockState.getValue(StandingTelevisionBlock.ROTATION));
-            state.standing = true;
-        } else {
-            state.transformation = TRANSFORMATIONS.wallTransformation(blockState.getValue(WallTelevisionBlock.FACING));
-            state.standing = false;
+        Holder<Media> media = blockEntity.getMedia();
+
+        if (!blockState.getValue(TelevisionBlock.POWERED) || media == null) {
+            state.renderType = null;
+            return;
         }
 
-        SpriteId spriteId = MediaSheets.getMaterial(blockEntity.getMedia());
+        if (blockState.getBlock() instanceof StandingTelevisionBlock) {
+            state.transformation = TRANSFORMATIONS.freeTransformations(blockState.getValue(StandingTelevisionBlock.ROTATION));
+            state.yOffset = STANDING_Y_OFFSET;
+        } else {
+            state.transformation = TRANSFORMATIONS.wallTransformation(blockState.getValue(WallTelevisionBlock.FACING));
+            state.yOffset = WALL_Y_OFFSET;
+        }
+
+        SpriteId spriteId = MediaSheets.getMaterial(media);
+        TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager().get(spriteId);
+        state.u0 = sprite.getU0();
+        state.u1 = sprite.getU1();
+        state.v0 = sprite.getV0();
+        state.v1 = sprite.getV1();
         state.renderType = spriteId.renderType(RenderTypes::entitySolid);
-        state.sprite = Minecraft.getInstance().getAtlasManager().get(spriteId);
     }
 
     @Override
@@ -58,30 +73,25 @@ public class TelevisionRenderer implements BlockEntityRenderer<TelevisionBlockEn
 
     @Override
     public void submit(TelevisionRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        if (!state.powered) return;
+        if (state.renderType == null) return;
 
-        float yOffset = state.standing ? 0.125f : 0.128f;
+        poseStack.pushPose();
+        poseStack.mulPose(state.transformation);
         collector.submitCustomGeometry(
                 poseStack,
                 state.renderType,
-                (pose, buffer) -> submitTelevision(state, pose, buffer, yOffset)
+                (pose, buffer) -> submitTelevision(pose, buffer, state.yOffset, state.u0, state.v0, state.u1, state.v1)
         );
+        poseStack.popPose();
     }
 
-    private void submitTelevision(TelevisionRenderState state, PoseStack.Pose pose, VertexConsumer buffer, float yOffset) {
-        pose.mulPose(state.transformation);
+    private void submitTelevision(PoseStack.Pose pose, VertexConsumer buffer, float yOffset, float u0, float v0, float u1, float v1) {
+        Vector3f normal = pose.transformNormal(0, 0, -1, new Vector3f());
 
-        Vector3f normal = pose.normal().transform(new Vector3f(0, 0, -1));
-        float size = 0.33f;
-        float u0 = state.sprite.getU0();
-        float u1 = state.sprite.getU1();
-        float v0 = state.sprite.getV0();
-        float v1 = state.sprite.getV1();
-
-        addVertex(buffer, pose, -size, -size + yOffset, 0, u0, v1, normal);
-        addVertex(buffer, pose, size, -size + yOffset, 0, u1, v1, normal);
-        addVertex(buffer, pose, size, size, 0, u1, v0, normal);
-        addVertex(buffer, pose, -size, size, 0, u0, v0, normal);
+        addVertex(buffer, pose, -HALF_SIZE, -HALF_SIZE + yOffset, 0, u0, v1, normal);
+        addVertex(buffer, pose, HALF_SIZE, -HALF_SIZE + yOffset, 0, u1, v1, normal);
+        addVertex(buffer, pose, HALF_SIZE, HALF_SIZE, 0, u1, v0, normal);
+        addVertex(buffer, pose, -HALF_SIZE, HALF_SIZE, 0, u0, v0, normal);
     }
 
     private void addVertex(VertexConsumer consumer, PoseStack.Pose pose, float x, float y, float z, float u, float v, Vector3f normal) {
