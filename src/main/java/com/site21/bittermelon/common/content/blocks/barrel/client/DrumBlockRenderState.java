@@ -10,7 +10,7 @@ public class DrumBlockRenderState extends BlockEntityRenderState {
     public Direction facing;
     public float fillLevel;
     public int color;
-    public TextureAtlasSprite sprite;;
+    public TextureAtlasSprite sprite;
     public float rotation;
     public @Nullable MovingBlockRenderState block;
     public Direction moveDirection;

@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.mojang.math.Transformation;
 import com.site21.bittermelon.common.content.blocks.electronics.television.*;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -45,7 +46,9 @@ public class TelevisionRenderer implements BlockEntityRenderer<TelevisionBlockEn
             state.standing = false;
         }
 
-        state.media = blockEntity.getMedia();
+        SpriteId spriteId = MediaSheets.getMaterial(blockEntity.getMedia());
+        state.renderType = spriteId.renderType(RenderTypes::entitySolid);
+        state.sprite = Minecraft.getInstance().getAtlasManager().get(spriteId);
     }
 
     @Override
@@ -55,14 +58,12 @@ public class TelevisionRenderer implements BlockEntityRenderer<TelevisionBlockEn
 
     @Override
     public void submit(TelevisionRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        if (!state.powered || state.media == null) return;
+        if (!state.powered) return;
 
-        SpriteId material = MediaSheets.getMaterial(state.media);
         float yOffset = state.standing ? 0.125f : 0.128f;
-
         collector.submitCustomGeometry(
                 poseStack,
-                material.renderType(RenderTypes::entitySolid),
+                state.renderType,
                 (pose, buffer) -> submitTelevision(state, pose, buffer, yOffset)
         );
     }
@@ -72,10 +73,15 @@ public class TelevisionRenderer implements BlockEntityRenderer<TelevisionBlockEn
 
         Vector3f normal = pose.normal().transform(new Vector3f(0, 0, -1));
         float size = 0.33f;
-        addVertex(buffer, pose, -size, -size + yOffset, 0, 0f, 1f, normal);
-        addVertex(buffer, pose, size, -size + yOffset, 0, 1f, 1f, normal);
-        addVertex(buffer, pose, size, size, 0, 1f, 0f, normal);
-        addVertex(buffer, pose, -size, size, 0, 0f, 0f, normal);
+        float u0 = state.sprite.getU0();
+        float u1 = state.sprite.getU1();
+        float v0 = state.sprite.getV0();
+        float v1 = state.sprite.getV1();
+
+        addVertex(buffer, pose, -size, -size + yOffset, 0, u0, v1, normal);
+        addVertex(buffer, pose, size, -size + yOffset, 0, u1, v1, normal);
+        addVertex(buffer, pose, size, size, 0, u1, v0, normal);
+        addVertex(buffer, pose, -size, size, 0, u0, v0, normal);
     }
 
     private void addVertex(VertexConsumer consumer, PoseStack.Pose pose, float x, float y, float z, float u, float v, Vector3f normal) {
@@ -92,7 +98,7 @@ public class TelevisionRenderer implements BlockEntityRenderer<TelevisionBlockEn
                 new Matrix4f()
                         .translation(0.5f, 0.5f, 0.5f)
                         .rotate(Axis.YP.rotationDegrees(-direction.toYRot()))
-                        .translation(0, 0, 0.251f)
+                        .translate(0, 0, 0.251f)
         );
     }
 
