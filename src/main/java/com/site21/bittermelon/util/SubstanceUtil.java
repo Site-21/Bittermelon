@@ -37,19 +37,18 @@ public final class SubstanceUtil {
         return SubstanceUtil.getTotalAmount(substances) * GAS_CONSTANT * temperature / volume;
     }
 
+
     /**
-     * Spill substances into the world at the given position.
-     * If the block at the position can be replaced and there is no fluid, it will place a SubstanceFluid block.
-     * If there is a SubstanceFluidBlockEntity at the position, it will transfer the substances to it.
-     * @param level the level to spill the substances in
+     * Spill a list of substances into the world at the given position.
+     * If the block at the position can be replaced and there is no fluid present, it will be replaced with a SubstanceFluid block.
+     * The substances will then be transferred to the SubstanceFluidBlockEntity at that position.
+     * @param level the level to spill the substances into
      * @param pos the position to spill the substances at
-     * @param substances the list of SubstanceStacks to spill
+     * @param substances the list of substances to spill
      * @return true if the substances were successfully spilled, false otherwise
      */
-    public static boolean spill(@NotNull Level level, BlockPos pos, List<SubstanceStack> substances) {
-        if (substances.isEmpty()) {
-            return false;
-        }
+    public static boolean spill(Level level, BlockPos pos, List<SubstanceStack> substances) {
+        if (substances.isEmpty()) return false;
 
         SubstanceFluid fluid = SUBSTANCE_FLUID.get();
 
@@ -57,6 +56,33 @@ public final class SubstanceUtil {
             level.setBlock(pos, fluid.defaultFluidState().createLegacyBlock(), Block.UPDATE_ALL);
         }
 
+        return transferToSubstanceFluid(level, pos, substances);
+    }
+
+    /**
+     * Replace the block at the given position with a SubstanceFluid block and transfer the given substances to it.
+     * @param level the level to replace the block in
+     * @param pos the position to replace with a SubstanceFluid block
+     * @param substances the list of substances to transfer
+     * @return true if the substances were successfully transferred, false otherwise
+     */
+    public static boolean replaceWithSubstanceFluid(Level level, BlockPos pos, List<SubstanceStack> substances) {
+        if (substances.isEmpty()) return false;
+
+        SubstanceFluid fluid = SUBSTANCE_FLUID.get();
+        level.setBlock(pos, fluid.defaultFluidState().createLegacyBlock(), Block.UPDATE_ALL);
+
+        return transferToSubstanceFluid(level, pos, substances);
+    }
+
+    /**
+     * Transfer the given substances to the SubstanceFluidBlockEntity at the given position, if it exists.
+     * @param level the level to transfer the substances in
+     * @param pos the position of the SubstanceFluidBlockEntity
+     * @param substances the list of substances to transfer
+     * @return true if the substances were successfully transferred, false otherwise
+     */
+    public static boolean transferToSubstanceFluid(Level level, BlockPos pos, List<SubstanceStack> substances) {
         if (level.getBlockEntity(pos) instanceof SubstanceFluidBlockEntity spreadBE) {
             spreadBE.getMixture().transferSubstances(substances);
             return true;

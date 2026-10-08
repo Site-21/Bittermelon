@@ -5,6 +5,7 @@ import com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluid;
 import com.site21.bittermelon.common.systems.substance.SubstanceMixture;
 import com.site21.bittermelon.init.neoforge.BitterBlockEntities;
 import com.site21.bittermelon.init.neoforge.BitterSounds;
+import com.site21.bittermelon.util.SubstanceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -19,13 +20,18 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
-import static com.site21.bittermelon.common.content.blocks.barrel.DrumBlock.ROLLING;
+import static com.site21.bittermelon.common.content.blocks.barrel.DrumBlock.*;
 import static net.minecraft.world.level.block.Block.UPDATE_CLIENTS;
 
 public class DrumBlockEntity extends BlockEntity implements MixtureOwner {
     private static final float ROT_SPEED = 0.1f;
+    private static final float ROT_SPEED_MIN = 0.05f;
+    private static final int PRESSURE_THRESHOLD = 100;
+    private static final float EXPLOSION_THRESHOLD = 0.4f;
+    private static final int PRESSURE_INTERVAL = 100;
 
     private SubstanceMixture mixture;
     private final Runnable mixtureChangedCallback = this::setChanged;
@@ -51,6 +57,49 @@ public class DrumBlockEntity extends BlockEntity implements MixtureOwner {
         if (mixture != null) {
             mixture.tickReactions(level, pos);
         }
+
+        potentiallyExplode(level, pos, state);
+    }
+
+    private void potentiallyExplode(Level level, BlockPos pos, BlockState state) {
+        int pressure = mixture.getPressure();
+        if (pressure > PRESSURE_THRESHOLD) {
+            if (level.getGameTime() % PRESSURE_INTERVAL == 0) {
+                level.playSound(
+                        null,
+                        pos,
+                        BitterSounds.METAL_DRUM_GROAN.value(),
+                        SoundSource.BLOCKS,
+                        0.25f,
+                        0.9f + 0.1f * level.getRandom().nextFloat()
+                );
+
+                float pressureRatio = (pressure - PRESSURE_THRESHOLD) / 1000.0f;
+                if (level.getRandom().nextFloat() < pressureRatio) {
+                    Vec3 explosionPos;
+                    if (pressureRatio >= EXPLOSION_THRESHOLD) {
+                        SubstanceUtil.replaceWithSubstanceFluid(level, pos, mixture.getSubstances());
+                        level.addDestroyBlockEffect(pos, state);
+                        explosionPos = Vec3.atCenterOf(pos);
+                    } else {
+                        Direction facing = state.getValue(DrumBlock.FACING);
+                        Direction newFacing = facing == Direction.DOWN
+                                ? Direction.Plane.HORIZONTAL.getRandomDirection(level.getRandom())
+                                : facing;
+                        level.setBlock(pos, state.setValue(OPEN, true).setValue(FACING, newFacing), Block.UPDATE_ALL);
+                        explosionPos = Vec3.atCenterOf(pos).add(Vec3.atLowerCornerOf(state.getValue(DrumBlock.FACING).getUnitVec3i()).scale(0.5));
+                    }
+
+                    level.explode(
+                            null,
+                            explosionPos.x, explosionPos.y, explosionPos.z,
+                            1.0f,
+                            false,
+                            Level.ExplosionInteraction.BLOCK
+                    );
+                }
+            }
+        }
     }
 
     private void move(Level level, BlockPos pos, BlockState state) {
@@ -70,7 +119,7 @@ public class DrumBlockEntity extends BlockEntity implements MixtureOwner {
                     BitterSounds.METAL_DRUM_FLIP.value(),
                     SoundSource.BLOCKS,
                     0.5f,
-                     1.0f + (1.0f - getMixture().getVolume() / (float) SubstanceFluid.FULL_BLOCK_VOLUME) * 0.2f
+                    1.0f + (1.0f - getMixture().getVolume() / (float) SubstanceFluid.FULL_BLOCK_VOLUME) * 0.2f
             );
         }
 
@@ -92,7 +141,8 @@ public class DrumBlockEntity extends BlockEntity implements MixtureOwner {
     public void tickAnimation() {
         if (!animationFinished() && moveDirection != null) {
             rot0 = rot;
-            rot += 0.05f + (ROT_SPEED * (1.0f - mixture.getVolume() / (float) SubstanceFluid.FULL_BLOCK_VOLUME));
+            float speed = ROT_SPEED * (1.0f - mixture.getVolume() / (float) SubstanceFluid.FULL_BLOCK_VOLUME);
+            rot += Math.max(ROT_SPEED_MIN, ROT_SPEED_MIN + speed);
         }
     }
 
@@ -162,6 +212,13 @@ public class DrumBlockEntity extends BlockEntity implements MixtureOwner {
     public void setChanged() {
         super.setChanged();
         if (level != null) {
+            // Ensure overflow is handled when mixture volume increases
+            if (getBlockState().getValue(OPEN) && !level.isClientSide()) {
+                if (getVolume() > SubstanceFluid.FULL_BLOCK_VOLUME) {
+                    level.scheduleTick(worldPosition, getBlockState().getBlock(), TICK_DELAY);
+                }
+            }
+
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), UPDATE_CLIENTS);
         }
     }

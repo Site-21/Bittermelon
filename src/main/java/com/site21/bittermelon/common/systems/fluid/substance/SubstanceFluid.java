@@ -336,12 +336,13 @@ public class SubstanceFluid extends Fluid {
     }
 
     private void exertPressure(SubstanceFluidBlockEntity fluidBE, LevelAccessor level) {
-        if (fluidBE.getPressure() >= PRESSURE_THRESHOLD) {
+        int pressure = fluidBE.getMixture().getPressure();
+        if (pressure >= PRESSURE_THRESHOLD) {
             for (Direction direction : Direction.values()) {
                 BlockPos neighborPos = fluidBE.getBlockPos().relative(direction);
                 if (level.getBlockState(neighborPos).canBeReplaced()) continue;
 
-                BlockDamageUtil.addDamage(level, neighborPos, fluidBE.getPressure() / 100);
+                BlockDamageUtil.addDamage(level, neighborPos, pressure / 100);
             }
         }
     }

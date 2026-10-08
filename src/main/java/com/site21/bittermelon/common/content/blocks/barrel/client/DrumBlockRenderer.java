@@ -40,7 +40,7 @@ public class DrumBlockRenderer implements BlockEntityRenderer<DrumBlockEntity, D
     public void extractRenderState(DrumBlockEntity blockEntity, DrumBlockRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
         state.facing = blockEntity.getBlockState().getValue(DrumBlock.FACING);
-        state.fillLevel = blockEntity.getMixture().getVolume() / (float) SubstanceFluid.FULL_BLOCK_VOLUME;
+        state.fillLevel = Math.min(1.0f, blockEntity.getMixture().getVolume() / (float) SubstanceFluid.FULL_BLOCK_VOLUME);
         state.color = blockEntity.getMixture().getColor();
         state.sprite = Minecraft.getInstance().getModelManager().getFluidStateModelSet().get(BitterFluids.SUBSTANCE_FLUID.get().defaultFluidState()).stillMaterial().sprite();
 

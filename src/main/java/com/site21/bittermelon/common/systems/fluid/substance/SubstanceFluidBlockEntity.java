@@ -104,16 +104,6 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
         }
     }
 
-    /**
-     * Calculates the pressure based on the fluid's volume.
-     * The pressure is defined as the difference between the full block volume and the current volume of the fluid.
-     *
-     * @return The calculated pressure value.
-     */
-    public int getPressure() {
-        return getVolume() - SubstanceFluid.FULL_BLOCK_VOLUME;
-    }
-
     @Override
     protected void saveAdditional(@NotNull ValueOutput output) {
         super.saveAdditional(output);

@@ -144,4 +144,6 @@ public class BitterSounds {
             SoundEvent::createVariableRangeEvent);
     public static final Holder<SoundEvent> METAL_DRUM_FLIP = SOUND_EVENTS.register("block.metal_drum_flip",
             SoundEvent::createVariableRangeEvent);
+    public static final Holder<SoundEvent> METAL_DRUM_GROAN = SOUND_EVENTS.register("block.metal_drum_groan",
+            SoundEvent::createVariableRangeEvent);
 }

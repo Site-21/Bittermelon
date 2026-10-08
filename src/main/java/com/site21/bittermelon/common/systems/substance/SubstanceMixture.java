@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.site21.bittermelon.common.systems.chemistry.Reaction;
 import com.site21.bittermelon.common.systems.chemistry.ReactionManager;
+import com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluid;
 import com.site21.bittermelon.util.ColorUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -262,6 +263,16 @@ public class SubstanceMixture implements SubstanceContainer {
         return substances.stream()
                 .map(entry -> String.format("%s: %d", entry.getSubstance().getName(), entry.getAmount()))
                 .collect(Collectors.joining(", "));
+    }
+
+    /**
+     * Calculates the pressure based on the fluid's volume.
+     * The pressure is defined as the difference between the full block volume and the current volume of the fluid.
+     *
+     * @return The calculated pressure value.
+     */
+    public int getPressure() {
+        return getVolume() - SubstanceFluid.FULL_BLOCK_VOLUME;
     }
 
     public List<SubstanceStack> spreadSubstancesByVolume(int transferVolume) {

@@ -55,7 +55,8 @@ public class DrumBlock extends Block implements Fallable, EntityBlock {
             Direction.WEST, Shapes.rotate(CLOSED_SHAPE, OctahedralGroup.BLOCK_ROT_Z_270),
             Direction.EAST, Shapes.rotate(CLOSED_SHAPE, OctahedralGroup.BLOCK_ROT_Z_90)
     );
-    private static final int TICK_DELAY = 2;
+    public static final int TICK_DELAY = 2;
+    private static final float SUBSTANCE_SPILL_PERCENTAGE = 0.1f;
     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
     public static final BooleanProperty OPEN = BlockStateProperties.OPEN;
     public static final BooleanProperty ROLLING = BooleanProperty.create("rolling");
@@ -95,7 +96,7 @@ public class DrumBlock extends Block implements Fallable, EntityBlock {
     @Override
     protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         Direction facing = state.getValue(FACING);
-        if (state.getValue(OPEN) && facing != Direction.UP) {
+        if (state.getValue(OPEN)) {
             spill(level, pos, facing);
         }
 
@@ -108,8 +109,9 @@ public class DrumBlock extends Block implements Fallable, EntityBlock {
         if (facing == Direction.DOWN && !level.getBlockState(pos.below()).canBeReplaced()) return;
 
         if (level.getBlockEntity(pos) instanceof DrumBlockEntity barrel) {
+            if (facing == Direction.UP && barrel.getMixture().getVolume() < SubstanceFluid.FULL_BLOCK_VOLUME) return;
             BlockPos spillPos = pos.relative(facing);
-            List<SubstanceStack> substances = barrel.getMixture().spreadSubstancesByPercentage(0.1f);
+            List<SubstanceStack> substances = barrel.getMixture().spreadSubstancesByPercentage(SUBSTANCE_SPILL_PERCENTAGE);
             SubstanceUtil.spill(level, spillPos, substances);
             barrel.getMixture().removeSubstances(substances);
             level.scheduleTick(pos, this, TICK_DELAY);
@@ -163,7 +165,8 @@ public class DrumBlock extends Block implements Fallable, EntityBlock {
         if (!isFree(level.getBlockState(pos.relative(pushDirection)))) return InteractionResult.PASS;
         if (level.getBlockEntity(pos) instanceof DrumBlockEntity barrel) {
             if (!level.isClientSide()) {
-                playRollSound(level, pos, state, Math.max(1.0f - barrel.getMixture().getVolume() / (float) SubstanceFluid.FULL_BLOCK_VOLUME, 0.1f));
+                float pitch = Math.max(1.0f - barrel.getMixture().getVolume() / (float) SubstanceFluid.FULL_BLOCK_VOLUME, 0.1f);
+                playRollSound(level, pos, state, pitch);
             }
 
             barrel.setMoveDirection(pushDirection);
