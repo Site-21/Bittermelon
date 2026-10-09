@@ -116,6 +116,7 @@ public class BitterModelProvider extends ModelProvider {
         createEyeballBlister(blockModels, BitterBlocks.EYEBALL_BLISTER.get());
         createWoodenSeat(blockModels, BitterBlocks.BLACK_WOODEN_SEAT.get(), "black");
         createDrum(blockModels, BitterBlocks.METAL_DRUM.get());
+        itemModels.generateFlatItem(BitterBlocks.METAL_DRUM.get().asItem(), ModelTemplates.FLAT_ITEM);
 
         // SubstanceFluid Containers
         itemModels.generateFlatItem(BEER_BOTTLE.get(), ModelTemplates.FLAT_ITEM);
@@ -910,8 +911,6 @@ public class BitterModelProvider extends ModelProvider {
                                     };
                                 }))
         );
-
-        blockModels.registerSimpleItemModel(block, ModelLocationUtils.getModelLocation(block));
     }
 
     @Contract(pure = true)
