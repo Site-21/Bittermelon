@@ -6,6 +6,7 @@ import com.site21.bittermelon.common.systems.blockdamage.BlockDamageUtil;
 import com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluidBlockEntity;
 import com.site21.bittermelon.common.systems.ragdoll.RagdollEntity;
 import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
+import com.site21.bittermelon.common.systems.stumble.StumbleHandler;
 import com.site21.bittermelon.common.systems.syncsound.SyncSoundEvent;
 import com.site21.bittermelon.common.systems.syncsound.SyncSoundType;
 import net.minecraft.ChatFormatting;
@@ -62,7 +63,7 @@ public class ExplosionHandler {
         for (Entity entity : affectedEntities) {
             Vec3 force = entity.position().subtract(explosion.center()).normalize().scale(explosion.radius() * 5);
             if (entity instanceof LivingEntity living) {
-                RagdollUtil.ragdoll(living, force);
+                StumbleHandler.stumble(living, force);
             } else if (entity instanceof RagdollEntity ragdoll) {
                 ragdoll.addMotion(force);
             }

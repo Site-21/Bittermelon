@@ -12,6 +12,7 @@ import com.site21.bittermelon.common.systems.ai.vibration.BitterAngerManagement;
 import com.site21.bittermelon.common.systems.ai.vibration.BitterVibrationListener;
 import com.site21.bittermelon.common.systems.character.Character;
 import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
+import com.site21.bittermelon.common.systems.stumble.StumbleHandler;
 import com.site21.bittermelon.init.neoforge.BitterActivity;
 import com.site21.bittermelon.init.neoforge.BitterDataSerializers;
 import com.site21.bittermelon.init.neoforge.BitterMemoryTypes;
@@ -216,7 +217,7 @@ public class SCP939 extends BitterMob<SCP939> {
         if (knockback > 1.0f && target instanceof LivingEntity livingTarget) {
             float strength = knockback * 2.5f;
             Vec3 motion = new Vec3(Mth.sin(getYRot() * (float) (Math.PI / 180.0)), 0, -Mth.cos(getYRot() * (float) (Math.PI / 180.0))).scale(strength);
-            RagdollUtil.ragdoll(livingTarget, motion);
+            StumbleHandler.stumble(livingTarget, motion);
         }
     }
 

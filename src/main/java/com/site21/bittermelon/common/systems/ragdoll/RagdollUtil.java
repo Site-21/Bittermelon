@@ -1,5 +1,6 @@
 package com.site21.bittermelon.common.systems.ragdoll;
 
+import com.site21.bittermelon.Bittermelon;
 import com.site21.bittermelon.init.neoforge.BitterEntities;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -25,7 +26,11 @@ public final class RagdollUtil {
     public static void spawnRagdoll(LivingEntity owner, Level level, Vec3 pos, Vec3 velocity) {
         if (isRagdolled(owner)) return;
         RagdollEntity ragdoll = BitterEntities.RAGDOLL.get().create(level, EntitySpawnReason.EVENT);
-        assert ragdoll != null;
+        if (ragdoll == null) {
+            Bittermelon.LOGGER.error("Failed to spawn ragdoll entity for {}", owner);
+            return;
+        }
+
         ragdoll.setPos(pos.x, pos.y + 1, pos.z);
         ragdoll.addMotion(velocity);
         ragdoll.setOwner(owner);

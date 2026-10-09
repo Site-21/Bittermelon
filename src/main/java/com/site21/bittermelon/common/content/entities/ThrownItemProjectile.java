@@ -3,6 +3,7 @@ package com.site21.bittermelon.common.content.entities;
 import com.site21.bittermelon.common.content.items.scps.scp2398.SCP2398Item;
 import com.site21.bittermelon.common.systems.ragdoll.RagdollEntity;
 import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
+import com.site21.bittermelon.common.systems.stumble.StumbleHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -220,7 +221,7 @@ public class ThrownItemProjectile extends ThrowableItemProjectile {
             if (velocity.length() > 0.5) {
                 Vec3 force = entity.position().subtract(position()).normalize().scale(20);
                 if (entity instanceof LivingEntity living) {
-                    RagdollUtil.ragdoll(living, force);
+                    StumbleHandler.stumble(living, force);
                 } else if (entity instanceof RagdollEntity ragdoll) {
                     ragdoll.addMotion(force);
                 }

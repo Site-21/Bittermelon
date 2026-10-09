@@ -4,20 +4,16 @@ import com.site21.bittermelon.common.systems.character.Character;
 import com.site21.bittermelon.common.systems.character.CharacterManager;
 import com.site21.bittermelon.common.systems.medical.legacy.medicalstats.MedicalStats;
 import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
+import com.site21.bittermelon.init.neoforge.BitterEntityTags;
 import com.site21.bittermelon.init.neoforge.BitterMobEffects;
-import com.site21.bittermelon.networking.client.SetForcedPose;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.network.PacketDistributor;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -27,6 +23,7 @@ import static com.site21.bittermelon.init.neoforge.BitterMobEffects.STUN;
 import static com.site21.bittermelon.util.LocalMessageUtil.sendLocalMessage;
 
 public class StumbleHandler {
+    private static final float DROP_CHANCE = 0.5f;
 
     /**
      * Makes a living entity stumble with customizable duration and push direction.
@@ -37,9 +34,9 @@ public class StumbleHandler {
      * @param length        base stumble duration in ticks
      * @param pushDirection direction to push the entity during stumble
      */
-    public static void stumble(@NotNull LivingEntity entity, int length, Vec3 pushDirection) {
-        if (entity.hasEffect(FALLEN)) return;
+    public static void stumble(LivingEntity entity, int length, Vec3 pushDirection) {
         if (entity.level().isClientSide()) return;
+        if (entity.hasEffect(FALLEN)) return;
 
         MedicalStats medicalStats = entity.getData(MEDICAL_STATS);
         int movement = (int) medicalStats.getMovement();
@@ -50,9 +47,19 @@ public class StumbleHandler {
         }
 
         addStunEffect(entity, length);
-        announceFall(entity);
 
-        RagdollUtil.ragdoll(entity, pushDirection);
+        if (entity.is(BitterEntityTags.RAGDOLLABLE)) {
+            RagdollUtil.ragdoll(entity, pushDirection);
+
+            if (entity instanceof Player player) {
+                dropItem(player);
+            }
+        } else {
+            entity.addEffect(new MobEffectInstance(FALLEN, MobEffectInstance.INFINITE_DURATION, 0, false, false));
+            motion(entity, pushDirection);
+        }
+
+        announceFall(entity);
     }
 
     /**
@@ -77,33 +84,15 @@ public class StumbleHandler {
         stumble(entity, entity instanceof Player ? 40 : 100, pushDirection);
     }
 
-    private static void motion(@NotNull LivingEntity entity, @NotNull Vec3 pushDirection) {
-        Vec3 normalizedPush = pushDirection.normalize();
+    private static void motion(LivingEntity entity, Vec3 pushDirection) {
         pushDirection.multiply(1, 0, 1);
-        Vec3 lookVector = entity.getLookAngle();
-
-        double dotProduct = normalizedPush.dot(lookVector);
-        double multiplier = 1.2d * entity.getEyeHeight();
+        double multiplier = 1.2 * entity.getEyeHeight();
         entity.addDeltaMovement(pushDirection.multiply(multiplier, 0, multiplier));
         entity.hurtMarked = true;
-
-        if (entity instanceof ServerPlayer player) {
-            Pose fallPose = dotProduct > 0 ? Pose.SWIMMING : Pose.SLEEPING;
-
-            player.setForcedPose(fallPose);
-            PacketDistributor.sendToPlayersTrackingEntityAndSelf(player, new SetForcedPose(player.getUUID(), fallPose));
-
-            if (fallPose == Pose.SLEEPING) {
-                dropItem(player, 0.7);
-            } else {
-                dropItem(player, 0.3);
-            }
-        } else {
-            entity.setPose(Pose.SLEEPING);
-        }
+        entity.setPose(Pose.SLEEPING);
     }
 
-    private static void addStunEffect(@NotNull LivingEntity entity, int duration) {
+    private static void addStunEffect(LivingEntity entity, int duration) {
         MobEffectInstance stumbleEffect = new MobEffectInstance(
                 BitterMobEffects.STUN,
                 duration,
@@ -115,8 +104,8 @@ public class StumbleHandler {
         entity.addEffect(stumbleEffect);
     }
 
-    private static void dropItem(@NotNull Player player, double chance) {
-        if (player.getRandom().nextFloat() < chance) {
+    private static void dropItem(Player player) {
+        if (player.getRandom().nextFloat() < DROP_CHANCE) {
             ItemStack heldItem = player.getMainHandItem();
             if (!heldItem.isEmpty()) {
                 player.drop(heldItem.copy(), true);
@@ -125,7 +114,7 @@ public class StumbleHandler {
         }
     }
 
-    private static void announceFall(@NotNull LivingEntity entity) {
+    private static void announceFall(LivingEntity entity) {
         Character character = CharacterManager.get(entity.level()).getActiveCharacter(entity);
         if (character != null) {
             Component component = Component.literal(character.getName() + " falls to the ground.").withColor(character.getEmoteColor());
@@ -133,31 +122,30 @@ public class StumbleHandler {
         }
     }
 
-    public static void attemptToRise(UUID uuid, @NotNull ServerLevel level) {
+    public static void attemptToRise(UUID uuid, ServerLevel level) {
         Player player = level.getPlayerByUUID(uuid);
         if (player == null) return;
 
-        if (!isStunned(player)) {
-            assert player.getVehicle() != null;
+        if (!isStunned(player) && player.getVehicle() != null) {
             player.getVehicle().discard();
         }
     }
 
-    public static boolean isStunned(@NotNull Entity entity) {
-        if (!(entity instanceof LivingEntity livingEntity)) return false;
-        return livingEntity.hasEffect(STUN);
+    public static boolean isStunned(LivingEntity entity) {
+        return entity.hasEffect(STUN);
     }
 
-    public static boolean isStumbled(@NotNull Entity entity) {
-        return RagdollUtil.isRagdolled(entity);
+    public static boolean isStumbled(LivingEntity entity) {
+        return entity.is(BitterEntityTags.RAGDOLLABLE) ?
+                RagdollUtil.isRagdolled(entity) :
+                entity.hasEffect(FALLEN);
     }
 
-    public static boolean canMove(@NotNull Entity entity) {
-        if (!(entity instanceof LivingEntity livingEntity)) return false;
-        return !livingEntity.hasEffect(STUN);
+    public static boolean canMove(LivingEntity entity) {
+        return !entity.hasEffect(STUN);
     }
 
-    public static void clearStunned(@NotNull LivingEntity entity) {
+    public static void clearStunned(LivingEntity entity) {
         entity.removeEffect(STUN);
     }
 }
