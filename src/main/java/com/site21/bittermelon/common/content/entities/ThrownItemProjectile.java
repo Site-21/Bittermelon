@@ -6,6 +6,7 @@ import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.systems.stumble.StumbleHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -17,6 +18,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ClipContext;
@@ -107,12 +109,18 @@ public class ThrownItemProjectile extends ThrowableItemProjectile {
         super.onHitBlock(result);
         if (!(level() instanceof ServerLevel level)) return;
 
-        boolean shouldBounceBack = handleBlockInteraction(result);
+        BlockPos pos = result.getBlockPos();
+        SoundEvent soundEvent;
+        if (getItem().getItem() instanceof BlockItem item) {
+            BlockState state = item.getBlock().defaultBlockState();
+            soundEvent = state.getSoundType(level, pos, this).getFallSound();
+        } else {
+            soundEvent = level.getBlockState(pos).getSoundType(level, pos, this).getFallSound();
+        }
 
-        // Bounce sound
-        level().playSound(null, result.getBlockPos(), SoundEvents.STONE_FALL, SoundSource.PLAYERS, 2, 1);
+        level().playSound(null, pos, soundEvent, SoundSource.NEUTRAL, 2, 1);
 
-        if (bounceCount < maxBounces && shouldBounceBack) {
+        if (bounceCount < maxBounces && handleBlockInteraction(result)) {
             Vec3 newVelocity = getNewVelocity(result);
 
             // Ensure above minimum velocity threshold
@@ -258,7 +266,7 @@ public class ThrownItemProjectile extends ThrowableItemProjectile {
                     hitDirection.z * hitStrength
             );
 
-            level.playSound(null, blockPosition(), SoundEvents.PLAYER_ATTACK_KNOCKBACK, SoundSource.PLAYERS,
+            level.playSound(null, blockPosition(), SoundEvents.PLAYER_ATTACK_KNOCKBACK, SoundSource.NEUTRAL,
                     0.8F, 0.8F + random.nextFloat() * 0.4F);
         }
 
