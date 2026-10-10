@@ -184,10 +184,11 @@ public class DrumBlockEntity extends BlockEntity implements MixtureOwner {
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
+
         input.read("mixture", SubstanceMixture.CODEC).ifPresent(loaded -> {
             int oldColor = this.mixture.getColor();
-            loaded.setChangedCallback(mixtureChangedCallback);
-            this.mixture = loaded;
+            mixture.setSubstances(loaded.getSubstances());
+            mixture.setTemperature(loaded.getTemperature());
             int newColor = loaded.getColor();
 
             if (level != null && level.isClientSide()) {

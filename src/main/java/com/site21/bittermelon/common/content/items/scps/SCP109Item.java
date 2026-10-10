@@ -1,7 +1,7 @@
 package com.site21.bittermelon.common.content.items.scps;
 
 import com.site21.bittermelon.common.content.items.substance.FluidContainerItem;
-import com.site21.bittermelon.common.systems.substance.SubstanceContainer;
+import com.site21.bittermelon.common.systems.fluid.substance.MixtureOwner;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -59,11 +59,11 @@ public class SCP109Item extends FluidContainerItem {
     }
 
     @Override
-    protected void transferSubstancesToBlock(BlockPos pos, @NotNull Level level, ItemStack stack, int volume) {
-        if (level.getBlockEntity(pos) instanceof SubstanceContainer container) {
+    protected void transferSubstancesToBlock(BlockPos pos, Level level, ItemStack stack, int volume) {
+        if (level.getBlockEntity(pos) instanceof MixtureOwner container) {
             SubstanceStack substanceStack = WATER.get().toStack();
             substanceStack.setVolume(volume);
-            container.updateSubstance(substanceStack);
+            container.getMixture().updateSubstance(substanceStack);
         }
     }
 

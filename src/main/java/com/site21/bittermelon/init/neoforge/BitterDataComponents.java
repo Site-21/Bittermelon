@@ -330,4 +330,9 @@ public class BitterDataComponents {
             "open_time",
             builder -> builder.persistent(Codec.LONG)
     );
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BAR_HIDDEN = DATA_COMPONENTS.registerComponentType(
+            "bar_hidden",
+            builder -> builder.persistent(Codec.BOOL)
+    );
 }

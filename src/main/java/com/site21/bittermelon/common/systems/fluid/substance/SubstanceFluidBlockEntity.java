@@ -7,8 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.util.Mth;
-import net.minecraft.util.profiling.Profiler;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -23,10 +22,10 @@ import java.util.List;
 
 import static com.site21.bittermelon.init.neoforge.BitterBlockEntities.SUBSTANCE_FLUID_BLOCK_ENTITY;
 import static com.site21.bittermelon.init.neoforge.BitterFluids.SUBSTANCE_FLUID;
-import static net.minecraft.world.level.block.Block.UPDATE_ALL;
-import static net.minecraft.world.level.block.Block.UPDATE_CLIENTS;
+import static net.minecraft.world.level.block.Block.*;
 
 public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwner {
+    private static final SubstanceFluid fluid = SUBSTANCE_FLUID.get();
     private static final Direction[] FALLBACK_DIRECTIONS = new Direction[]{
             Direction.UP,
             Direction.NORTH,
@@ -35,10 +34,10 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
             Direction.WEST
     };
     private SubstanceMixture mixture;
-    private final Runnable mixtureChangedCallback = () -> {
-        setChanged();
-        updateFluidState();
-    };
+    private final Runnable mixtureChangedCallback = this::onMixtureChanged;
+    private boolean dirty;
+    private int lastSyncedColor;
+    private int syncedColor;
 
     public SubstanceFluidBlockEntity(BlockPos pos, BlockState blockState) {
         super(SUBSTANCE_FLUID_BLOCK_ENTITY.get(), pos, blockState);
@@ -46,29 +45,54 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
         mixture.setTemperature(500);
     }
 
-    public void updateFluidState() {
-        if (level == null) return;
-        if (level.getBlockState(worldPosition).isAir()) return;
+    public void onMixtureChanged() {
+        if (level instanceof ServerLevel serverLevel) {
+            markDirty(serverLevel);
+        }
+    }
 
-        Profiler.get().push("updateFluidState");
+    public void markDirty(ServerLevel level) {
+        if (isRemoved()) return;
+        dirty = true;
+        ensureTicking(level);
+    }
 
-        int fluidLevel = Math.max(1, Mth.clamp(getVolume() / 50, 1, 19));
-        int currentFluidLevel = level.getFluidState(worldPosition).getAmount();
-        if (currentFluidLevel != 20 && currentFluidLevel != fluidLevel) {
-            BlockState currentState = level.getBlockState(worldPosition);
-            BlockState newState = currentState.setValue(SubstanceFluidBlock.LEVEL, fluidLevel);
+    private void ensureTicking(ServerLevel level) {
+        if (!level.getFluidTicks().hasScheduledTick(worldPosition, fluid)) {
+            level.scheduleTick(worldPosition, fluid, fluid.getTickDelay(level));
+        }
+    }
 
-            level.setBlock(worldPosition, newState, UPDATE_ALL);
+    public void update(ServerLevel level) {
+        if (!dirty) return;
+        dirty = false;
+
+        int volume = getVolume();
+        if (volume <= 0) {
+            level.setBlockAndUpdate(worldPosition, Blocks.AIR.defaultBlockState());
+            return;
         }
 
-        level.scheduleTick(worldPosition, SUBSTANCE_FLUID.get(), SUBSTANCE_FLUID.get().getTickDelay(level));
+        BlockState state = getBlockState();
 
-        Profiler.get().pop();
+        int targetLevel = fluid.getBlockLevel(volume);
+        if (targetLevel != state.getValue(SubstanceFluidBlock.LEVEL)) {
+            level.setBlock(worldPosition, state.setValue(SubstanceFluidBlock.LEVEL, targetLevel), UPDATE_CLIENTS);
+        }
+
+        int color = mixture.getColor();
+        if (color != lastSyncedColor) {
+            lastSyncedColor = color;
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
+        }
+
+        setChanged();
+        ensureTicking(level);
     }
 
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        if (level == null) return;
+        if (level == null || level.isClientSide()) return;
         displace(level, pos);
     }
 
@@ -100,33 +124,32 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
         if (substances.isEmpty()) return;
 
         for (BlockPos target : targets) {
-            SUBSTANCE_FLUID.get().spreadTo(level, target, substances);
+            fluid.spreadTo(level, target, substances);
         }
     }
 
     @Override
     protected void saveAdditional(@NotNull ValueOutput output) {
         super.saveAdditional(output);
-
         output.store("mixture", SubstanceMixture.CODEC, mixture);
-        output.putInt("cachedColor", mixture.getColor());
     }
 
     @Override
     protected void loadAdditional(@NotNull ValueInput input) {
         super.loadAdditional(input);
         input.read("mixture", SubstanceMixture.CODEC).ifPresent(loaded -> {
-            int oldColor = this.mixture.getColor();
-            loaded.setChangedCallback(mixtureChangedCallback);
-            this.mixture = loaded;
-            int newColor = loaded.getColor();
-
-            if (level != null && level.isClientSide()) {
-                if (oldColor != newColor) {
-                    level.sendBlockUpdated(worldPosition, Blocks.AIR.defaultBlockState(), getBlockState(), Block.UPDATE_IMMEDIATE);
-                }
-            }
+            mixture.setSubstances(loaded.getSubstances());
+            mixture.setTemperature(loaded.getTemperature());
+            lastSyncedColor = mixture.getColor();
         });
+
+        if (level != null && level.isClientSide()) {
+            int newColor = input.getIntOr("color", syncedColor);
+            if (newColor != syncedColor) {
+                syncedColor = newColor;
+                level.sendBlockUpdated(worldPosition, Blocks.AIR.defaultBlockState(), getBlockState(), Block.UPDATE_IMMEDIATE);
+            }
+        }
     }
 
     @Override
@@ -136,15 +159,14 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
 
     @Override
     public @NotNull CompoundTag getUpdateTag(HolderLookup.@NotNull Provider registries) {
-        return saveCustomOnly(registries);
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("color", mixture.getColor());
+        return tag;
     }
 
     @Override
-    public void setChanged() {
-        super.setChanged();
-        if (level != null) {
-            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), UPDATE_CLIENTS);
-        }
+    public int getColor() {
+        return level != null && level.isClientSide() ? syncedColor : mixture.getColor();
     }
 
     @Override

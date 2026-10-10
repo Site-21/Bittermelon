@@ -148,7 +148,6 @@ public class SCP815Item extends Item {
                     level.setBlockAndUpdate(above, BitterBlocks.SUBSTANCE_FLUID.get().defaultBlockState().setValue(SubstanceFluidBlock.LEVEL, 1));
                     if (level.getBlockEntity(above) instanceof SubstanceFluidBlockEntity be) {
                         be.getMixture().updateSubstance(new SubstanceStack(Substances.KOOL_AID.get(), 50));
-                        be.updateFluidState();
                     }
                     break;
                 }

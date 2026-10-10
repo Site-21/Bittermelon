@@ -53,7 +53,7 @@ public final class SubstanceUtil {
         SubstanceFluid fluid = SUBSTANCE_FLUID.get();
 
         if (level.getBlockState(pos).canBeReplaced() && level.getFluidState(pos).isEmpty()) {
-            level.setBlock(pos, fluid.defaultFluidState().createLegacyBlock(), Block.UPDATE_ALL);
+            level.setBlock(pos, fluid.defaultFluidState().createLegacyBlock(), Block.UPDATE_NONE);
         }
 
         return transferToSubstanceFluid(level, pos, substances);
@@ -70,7 +70,7 @@ public final class SubstanceUtil {
         if (substances.isEmpty()) return false;
 
         SubstanceFluid fluid = SUBSTANCE_FLUID.get();
-        level.setBlock(pos, fluid.defaultFluidState().createLegacyBlock(), Block.UPDATE_ALL);
+        level.setBlock(pos, fluid.defaultFluidState().createLegacyBlock(), Block.UPDATE_NONE);
 
         return transferToSubstanceFluid(level, pos, substances);
     }
