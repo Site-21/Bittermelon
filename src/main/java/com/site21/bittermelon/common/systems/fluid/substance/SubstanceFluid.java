@@ -23,7 +23,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlockContainer;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -34,7 +33,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.fluids.FluidType;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -58,35 +57,39 @@ public class SubstanceFluid extends Fluid {
     }
 
     @Override
-    protected void createFluidStateDefinition(StateDefinition.@NotNull Builder<Fluid, FluidState> builder) {
+    protected void createFluidStateDefinition(StateDefinition.Builder<Fluid, FluidState> builder) {
         builder.add(LEVEL);
     }
 
     @Override
-    protected void tick(@NotNull ServerLevel level, @NotNull BlockPos pos, @NotNull BlockState blockState, @NotNull FluidState fluidState) {
+    protected void tick(ServerLevel level, BlockPos pos, BlockState blockState, FluidState fluidState) {
+        if (!(level.getBlockEntity(pos) instanceof SubstanceFluidBlockEntity fluidBE)) return;
+
         Profiler.get().push("SubstanceFluidTick");
 
-        if (level.getBlockEntity(pos) instanceof SubstanceFluidBlockEntity fluidBE) {
+        List<SubstanceFluidBlockEntity> touched = new ArrayList<>(6);
+        touched.add(fluidBE);
+        try {
             if (fluidBE.getVolume() <= 0) {
-                level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+                fluidBE.markDirty(level);
                 return;
             }
 
             fluidBE.getMixture().tickReactions(level, pos);
 
-            if (spreadDownwards(level, pos, fluidBE)) return;
+            if (spreadDownwards(level, pos, fluidBE, touched)) return;
 
             int volume = fluidBE.getVolume();
-            if (volume > SPREAD_THRESHOLD) {
-                if (!spreadHorizontally(level, pos, fluidBE, volume)) {
-                    if (volume > FULL_BLOCK_VOLUME) {
-                        spreadUpwards(level, pos, fluidBE);
-                    }
-                }
+            if (volume > SPREAD_THRESHOLD && !spreadHorizontally(level, pos, fluidBE, touched) && volume > FULL_BLOCK_VOLUME) {
+                spreadUpwards(level, pos, fluidBE, touched);
             }
-        }
+        } finally {
+            for (SubstanceFluidBlockEntity be : touched) {
+                be.update(level);
+            }
 
-        Profiler.get().pop();
+            Profiler.get().pop();
+        }
     }
 
     @Override
@@ -101,18 +104,18 @@ public class SubstanceFluid extends Fluid {
         return true;
     }
 
-    private boolean spreadDownwards(@NotNull Level level, @NotNull BlockPos pos, @NotNull SubstanceFluidBlockEntity fluidBE) {
+    private boolean spreadDownwards(Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE, List<SubstanceFluidBlockEntity> touched) {
         List<SubstanceStack> substances = fluidBE.getMixture().getSubstances();
+        if (substances.isEmpty() || !canSpreadTo(level, pos.below())) return false;
 
-        if (substances.isEmpty()) return false;
-        if (!canSpreadTo(level, pos.below())) return false;
+        SubstanceFluidBlockEntity target = spreadTo(level, pos.below(), substances);
+        if (target != null) touched.add(target);
 
-        spreadTo(level, pos.below(), substances);
-        fluidBE.getMixture().setSubstances(new ArrayList<>());
+        fluidBE.getMixture().setSubstances(List.of());
         return true;
     }
 
-    private boolean spreadHorizontally(@NotNull Level level, BlockPos pos, @NotNull SubstanceFluidBlockEntity fluidBE, int volume) {
+    private boolean spreadHorizontally(Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE, List<SubstanceFluidBlockEntity> touched) {
         Profiler.get().push("spreadHorizontally");
 
         List<BlockPos> spreadPositions = new ArrayList<>(4);
@@ -136,11 +139,12 @@ public class SubstanceFluid extends Fluid {
         }
 
         for (BlockPos spreadPos : spreadPositions) {
-            spreadTo(level, spreadPos, substancesToSpread);
+            SubstanceFluidBlockEntity target = spreadTo(level, spreadPos, substancesToSpread);
+            if (target != null) touched.add(target);
         }
 
         fluidBE.getMixture().removeSubstances(substancesToSpread, spreadCount);
-        equalizeSubstances(level, pos, fluidBE);
+        equalizeSubstances(level, pos, fluidBE, touched);
 
         Profiler.get().pop();
         return true;
@@ -189,7 +193,7 @@ public class SubstanceFluid extends Fluid {
         }
     }
 
-    private void spreadUpwards(@NotNull Level level, @NotNull BlockPos pos, @NotNull SubstanceFluidBlockEntity fluidBE) {
+    private void spreadUpwards(Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE, List<SubstanceFluidBlockEntity> touched) {
         int spreadVolume = fluidBE.getVolume() - FULL_BLOCK_VOLUME;
         if (spreadVolume <= 0) return;
 
@@ -200,7 +204,8 @@ public class SubstanceFluid extends Fluid {
                     fluidBE.getVolume());
             if (substancesToSpread.isEmpty()) return;
 
-            spreadTo(level, abovePos, substancesToSpread);
+            SubstanceFluidBlockEntity target = spreadTo(level, abovePos, substancesToSpread);
+            if (target != null) touched.add(target);
 
             for (SubstanceStack spreadStack : substancesToSpread) {
                 fluidBE.getMixture().removeSubstance(spreadStack, spreadStack.getAmount());
@@ -225,7 +230,7 @@ public class SubstanceFluid extends Fluid {
         return spreadStacks;
     }
 
-    public boolean canSpreadTo(@NotNull Level level, @NotNull BlockPos pos) {
+    public boolean canSpreadTo(Level level, BlockPos pos) {
         // Check if the neighbor fluid state is empty or same type
         FluidState neighborFluidState = level.getFluidState(pos);
         if (!neighborFluidState.isEmpty() && !neighborFluidState.is(this)) return false;
@@ -261,7 +266,7 @@ public class SubstanceFluid extends Fluid {
         return blockState.canBeReplaced();
     }
 
-    private void equalizeSubstances(@NotNull Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE) {
+    private void equalizeSubstances(Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE, List<SubstanceFluidBlockEntity> touched) {
         Profiler.get().push("equalizeSubstances");
 
         List<SubstanceFluidBlockEntity> fluids = new ArrayList<>(5);
@@ -283,6 +288,7 @@ public class SubstanceFluid extends Fluid {
             return;
         }
 
+        touched.addAll(fluids);
         int fluidCount = fluids.size();
 
         Map<Substance, Integer> totalsByType = new HashMap<>();
@@ -290,10 +296,6 @@ public class SubstanceFluid extends Fluid {
             for (SubstanceStack stack : be.getMixture().getSubstances()) {
                 totalsByType.merge(stack.getSubstance(), stack.getAmount(), Integer::sum);
             }
-//            if (level instanceof ServerLevel serverLevel) {
-//                serverLevel.sendParticles(ParticleTypes.BUBBLE, be.getBlockPos().getX() + 0.5, be.getBlockPos().getY() + 1,
-//                        be.getBlockPos().getZ() + 0.5, 1, 0, 0, 0, 0.1);
-//            }
         }
 
         for (int i = 0; i < fluidCount; i++) {
@@ -320,19 +322,25 @@ public class SubstanceFluid extends Fluid {
             be.getMixture().setSubstances(newStacks);
         }
 
+
+        //            if (level instanceof ServerLevel serverLevel) {
+//                serverLevel.sendParticles(ParticleTypes.BUBBLE, be.getBlockPos().getX() + 0.5, be.getBlockPos().getY() + 1,
+//                        be.getBlockPos().getZ() + 0.5, 1, 0, 0, 0, 0.1);
+//            }
+
         Profiler.get().pop();
     }
 
-    protected void spreadTo(@NotNull Level level, BlockPos pos, List<SubstanceStack> substances) {
+    protected @Nullable SubstanceFluidBlockEntity spreadTo(Level level, BlockPos pos, List<SubstanceStack> substances) {
         if (!level.getFluidState(pos).is(this)) {
-            FluidState newState = defaultFluidState().setValue(LEVEL, 1);
-            level.setBlock(pos, createLegacyBlock(newState), Block.UPDATE_CLIENTS);
+            level.setBlock(pos, createLegacyBlock(defaultFluidState().setValue(LEVEL, 1)), Block.UPDATE_NONE);
             playFlowSound(level, pos, level.getRandom());
         }
-
-        if (level.getBlockEntity(pos) instanceof SubstanceFluidBlockEntity spreadBE) {
-            spreadBE.getMixture().transferSubstances(substances);
+        if (level.getBlockEntity(pos) instanceof SubstanceFluidBlockEntity be) {
+            be.getMixture().transferSubstances(substances);
+            return be;
         }
+        return null;
     }
 
     private void exertPressure(SubstanceFluidBlockEntity fluidBE, LevelAccessor level) {
@@ -385,18 +393,18 @@ public class SubstanceFluid extends Fluid {
     }
 
     @Override
-    public @NotNull Item getBucket() {
+    public Item getBucket() {
         return bucket.get();
     }
 
     @Override
-    protected boolean canBeReplacedWith(@NotNull FluidState state, @NotNull BlockGetter level, @NotNull BlockPos pos,
-                                        @NotNull Fluid fluid, @NotNull Direction direction) {
+    protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos,
+                                        Fluid fluid, Direction direction) {
         return true;
     }
 
     @Override
-    protected @NotNull Vec3 getFlow(@NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull FluidState state) {
+    protected Vec3 getFlow(BlockGetter level, BlockPos pos, FluidState state) {
         double flowX = 0.0;
         double flowZ = 0.0;
         BlockPos.MutableBlockPos neighborPos = new BlockPos.MutableBlockPos();
@@ -445,7 +453,7 @@ public class SubstanceFluid extends Fluid {
     }
 
     @Override
-    public int getTickDelay(@NotNull LevelReader level) {
+    public int getTickDelay(LevelReader level) {
         return 5;
     }
 
@@ -455,39 +463,42 @@ public class SubstanceFluid extends Fluid {
     }
 
     @Override
-    public float getHeight(@NotNull FluidState state, @NotNull BlockGetter level, @NotNull BlockPos pos) {
+    public float getHeight(FluidState state, BlockGetter level, BlockPos pos) {
         return state.getType().isSame(level.getFluidState(pos.above()).getType()) ? 1f : getOwnHeight(state);
     }
 
     @Override
-    public float getOwnHeight(@NotNull FluidState state) {
+    public float getOwnHeight(FluidState state) {
         return state.getAmount() / 20.0f;
     }
 
     @Override
-    protected @NotNull BlockState createLegacyBlock(@NotNull FluidState state) {
-        return SUBSTANCE_FLUID.get().defaultBlockState().setValue(BitterStateProperties.LEVEL,
-                state.getValue(LEVEL));
+    protected BlockState createLegacyBlock(FluidState state) {
+        return SUBSTANCE_FLUID.get().defaultBlockState().setValue(BitterStateProperties.LEVEL, state.getValue(LEVEL));
     }
 
     @Override
-    public boolean isSource(@NotNull FluidState state) {
+    public boolean isSource(FluidState state) {
         return true;
     }
 
     @Override
-    public int getAmount(@NotNull FluidState state) {
+    public int getAmount(FluidState state) {
         return state.getValue(LEVEL);
     }
 
+    public int getBlockLevel(int volume) {
+        return Math.clamp(volume / 50, 1, 20);
+    }
+
     @Override
-    public @NotNull VoxelShape getShape(@NotNull FluidState state, @NotNull BlockGetter level, @NotNull BlockPos pos) {
+    public VoxelShape getShape(FluidState state, BlockGetter level, BlockPos pos) {
         return shapes.computeIfAbsent(state, (fluidState) -> Shapes.box(0.0, 0.0, 0.0, 1.0,
                 fluidState.getHeight(level, pos), 1.0));
     }
 
     @Override
-    public @NotNull FluidType getFluidType() {
+    public FluidType getFluidType() {
         return BitterFluidTypes.SUBSTANCE_FLUID_TYPE.get();
     }
 }

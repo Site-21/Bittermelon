@@ -105,17 +105,17 @@ public class SubstanceContainerItem extends BitterItem {
     }
 
     @Override
-    public boolean isBarVisible(@NotNull ItemStack stack) {
-        return true;
+    public boolean isBarVisible(ItemStack stack) {
+        return !stack.getOrDefault(BAR_HIDDEN, false) && getTotalVolume(stack) > 0;
     }
 
     @Override
-    public int getBarWidth(@NotNull ItemStack stack) {
-        return (int) ((long) getSubstanceData(stack).getTotalVolume() * MAX_BAR_WIDTH / getCapacity(stack));
+    public int getBarWidth(ItemStack stack) {
+        return getSubstanceData(stack).getTotalVolume() * MAX_BAR_WIDTH / getCapacity(stack);
     }
 
     @Override
-    public int getBarColor(@NotNull ItemStack stack) {
+    public int getBarColor(ItemStack stack) {
         float fillPercentage = (float) getSubstanceData(stack).getTotalVolume() / getCapacity(stack);
         if (fillPercentage < 0.5f) {
             return 0xFF0000 | (Math.round(510 * fillPercentage) << 8); // Red to Yellow

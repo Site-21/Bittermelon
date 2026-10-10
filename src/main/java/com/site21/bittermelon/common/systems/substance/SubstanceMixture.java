@@ -146,6 +146,7 @@ public class SubstanceMixture implements SubstanceContainer {
     }
 
     public void transferSubstances(@NotNull List<SubstanceStack> newSubstances) {
+        if (newSubstances.isEmpty()) return;
         for (SubstanceStack stack : newSubstances) {
             updateSubstanceNoUpdate(stack.copy());
         }
@@ -202,10 +203,11 @@ public class SubstanceMixture implements SubstanceContainer {
 
     public void setTemperature(float temperature) {
         this.temperature = temperature;
+        onChanged.run();
     }
 
     public void modifyTemperature(float delta) {
-        temperature = Math.max(0, temperature + delta);
+        setTemperature(Math.max(0, temperature + delta));
     }
 
     public int getVolume() {
@@ -229,7 +231,7 @@ public class SubstanceMixture implements SubstanceContainer {
             } else {
                 Map<Integer, Integer> colors = new HashMap<>(substances.size());
                 for (SubstanceStack stack : substances) {
-                    colors.put(stack.getSubstance().getColor(), stack.getVolume());
+                    colors.merge(stack.getSubstance().getColor(), stack.getVolume(), Integer::sum);
                 }
                 cachedColor = ColorUtil.mixColors(colors);
             }

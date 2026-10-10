@@ -41,6 +41,7 @@ import java.util.function.Consumer;
 import static com.site21.bittermelon.init.neoforge.BitterBlocks.SUBSTANCE_FLUID;
 import static com.site21.bittermelon.init.neoforge.BitterDataComponents.*;
 import static net.minecraft.world.level.block.Block.UPDATE_ALL_IMMEDIATE;
+import static net.minecraft.world.level.block.Block.UPDATE_NONE;
 
 public class FluidContainerItem extends SubstanceContainerItem {
     public static final int MIN_TRANSFER_RATE = 1;
@@ -306,7 +307,7 @@ public class FluidContainerItem extends SubstanceContainerItem {
             if (!stack.getOrDefault(HAS_LANDED.get(), false)) {
                 stack.set(HAS_LANDED.get(), true);
                 if (stack.getOrDefault(CAN_SPILL, true)) {
-                    spill(stack, level, entity.blockPosition(), getMaxTransferRate(stack) * entity.getRandom().nextInt());
+                    spill(stack, level, entity.blockPosition(), (int) (getMaxTransferRate(stack) * entity.getRandom().nextFloat()));
                 }
             }
         }
@@ -323,12 +324,13 @@ public class FluidContainerItem extends SubstanceContainerItem {
     }
 
     public void spill(ItemStack stack, @NotNull Level level, BlockPos pos, int volume) {
+        if (volume <= 0) return;
         BlockState existingState = level.getBlockState(pos);
 
         if (existingState.getBlock() instanceof SubstanceFluidBlock) {
             transferSubstancesToBlock(pos, level, stack, volume);
         } else if (existingState.canBeReplaced()) {
-            level.setBlock(pos, SUBSTANCE_FLUID.get().defaultBlockState(), UPDATE_ALL_IMMEDIATE);
+            level.setBlock(pos, SUBSTANCE_FLUID.get().defaultBlockState(), UPDATE_NONE);
             transferSubstancesToBlock(pos, level, stack, volume);
         }
     }

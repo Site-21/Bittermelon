@@ -133,6 +133,7 @@ public class CommonEvents {
         BlockPos pos = entity.blockPosition();
 
         if (level.isClientSide()) return;
+        if (entity.isSpectator()) return;
 
         if (entity.hasData(STAINS) && level.getGameTime() % STAIN_TICK_INTERVAL == 0) {
             SubstanceMixture stains = entity.getData(STAINS);
