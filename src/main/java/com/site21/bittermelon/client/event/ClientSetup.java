@@ -43,7 +43,6 @@ import com.site21.bittermelon.common.systems.component.screwdriver.ScrewdriverUs
 import com.site21.bittermelon.common.systems.component.temperature.HeatDecorator;
 import com.site21.bittermelon.common.systems.fluid.simple.ClientSimpleFluid;
 import com.site21.bittermelon.common.systems.fluid.substance.client.ClientSubstanceFluid;
-import com.site21.bittermelon.common.systems.fluid.substance.client.SubstanceFluidRenderer;
 import com.site21.bittermelon.common.systems.fluid.substance.client.SubstanceTintSource;
 import com.site21.bittermelon.common.systems.medical.anatomy.client.AnatomyDebugRenderer;
 import com.site21.bittermelon.common.systems.medical.bodypart.LimbLayer;
@@ -419,8 +418,7 @@ public class ClientSetup {
                 new Material(Identifier.withDefaultNamespace("block/water_still")),
                 new Material(Identifier.withDefaultNamespace("block/water_flow")),
                 new Material(Identifier.withDefaultNamespace("block/water_overlay")),
-                new SubstanceTintSource(),
-                new SubstanceFluidRenderer()
+                new SubstanceTintSource()
         );
 
         event.register(substanceModel, BitterFluids.SUBSTANCE_FLUID);

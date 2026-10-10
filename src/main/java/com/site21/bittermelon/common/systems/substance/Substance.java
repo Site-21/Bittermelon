@@ -27,7 +27,7 @@ public class Substance {
     public static final Codec<Holder<Substance>> CODEC = SUBSTANCE_REGISTRY.holderByNameCodec();
     public static final StreamCodec<RegistryFriendlyByteBuf, Holder<Substance>> STREAM_CODEC =
             ByteBufCodecs.holderRegistry(SUBSTANCE_REGISTRY_KEY);
-    public static final int DEFAULT_COLOR = 0xFFAAD5DB;
+    public static final int DEFAULT_COLOR = 0;
 
     private final String name;
     private final Substance.Properties properties;
