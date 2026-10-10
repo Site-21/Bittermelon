@@ -159,6 +159,7 @@ public class BitterItems {
             new SCP109Item(new Item.Properties()
                     .stacksTo(1)
                     .setId(ResourceKey.create(Registries.ITEM, registryName))
+                    .component(HIDE_BAR, true)
                     .component(VOLUME, 0)
                     .component(DataComponents.LORE, new ItemLore(List.of(Component.literal("Infinite Canteen").withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.GRAY), Component.literal("Euclid").withStyle(ChatFormatting.GOLD)))
                     )));

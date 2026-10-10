@@ -331,8 +331,8 @@ public class BitterDataComponents {
             builder -> builder.persistent(Codec.LONG)
     );
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> BAR_HIDDEN = DATA_COMPONENTS.registerComponentType(
-            "bar_hidden",
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> HIDE_BAR = DATA_COMPONENTS.registerComponentType(
+            "hide_bar",
             builder -> builder.persistent(Codec.BOOL)
     );
 }

@@ -106,7 +106,7 @@ public class SubstanceContainerItem extends BitterItem {
 
     @Override
     public boolean isBarVisible(ItemStack stack) {
-        return !stack.getOrDefault(BAR_HIDDEN, false) && getTotalVolume(stack) > 0;
+        return !stack.getOrDefault(HIDE_BAR, false) && getTotalVolume(stack) > 0;
     }
 
     @Override

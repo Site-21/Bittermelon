@@ -34,16 +34,6 @@ public class SCP109Item extends FluidContainerItem {
     }
 
     @Override
-    public boolean isBarVisible(@NotNull ItemStack stack) {
-        return false;
-    }
-
-    @Override
-    public int getBarWidth(@NotNull ItemStack stack) {
-        return 0;
-    }
-
-    @Override
     public boolean onEntityItemUpdate(@NotNull ItemStack stack, @NotNull ItemEntity entity) {
         Level level = entity.level();
         if (level.isClientSide()) return false;
@@ -70,5 +60,10 @@ public class SCP109Item extends FluidContainerItem {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay tooltipDisplay, @NotNull Consumer<Component> tooltipAdder, TooltipFlag flag) {
         tooltipAdder.accept(Component.literal("Contents: ∞/∞"));
+    }
+
+    @Override
+    public int getEntityLifespan(ItemStack itemStack, Level level) {
+        return Integer.MAX_VALUE;
     }
 }
