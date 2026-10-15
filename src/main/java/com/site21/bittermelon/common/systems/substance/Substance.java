@@ -103,8 +103,16 @@ public class Substance {
         return properties.smell;
     }
 
-    public Integer getColor() {
+    public int getColor() {
         return properties.color;
+    }
+
+    public float getDensity() {
+        return properties.density;
+    }
+
+    public float getMolarMass() {
+        return properties.molarMass;
     }
 
     public @NotNull Holder<Substance> builtInRegistryHolder() {

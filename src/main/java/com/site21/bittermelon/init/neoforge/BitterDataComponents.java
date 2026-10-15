@@ -7,6 +7,8 @@ import com.site21.bittermelon.common.content.items.scps.scp377.Fortune;
 import com.site21.bittermelon.common.content.items.substance.pill.PillShape;
 import com.site21.bittermelon.common.systems.component.Smokable;
 import com.site21.bittermelon.common.systems.component.SubstanceContents;
+import com.site21.bittermelon.common.systems.component.heavy.Heavy;
+import com.site21.bittermelon.common.systems.component.heavy.WeightSource;
 import com.site21.bittermelon.common.systems.component.WireCutter;
 import com.site21.bittermelon.common.systems.component.medical.Retractor;
 import com.site21.bittermelon.common.systems.component.medical.Scalpel;
@@ -27,7 +29,6 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.util.ExtraCodecs;
-import net.minecraft.util.Unit;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -338,9 +339,9 @@ public class BitterDataComponents {
             builder -> builder.persistent(Codec.BOOL)
     );
 
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Unit>> HEAVY = DATA_COMPONENTS.registerComponentType(
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Heavy>> HEAVY = DATA_COMPONENTS.registerComponentType(
             "heavy",
-            builder -> builder.persistent(Unit.CODEC)
+            builder -> builder.persistent(Heavy.CODEC)
     );
 
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<SubstanceMixture>> SUBSTANCE_MIXTURE = DATA_COMPONENTS.registerComponentType(

@@ -33,6 +33,8 @@ import com.site21.bittermelon.common.content.items.writablepaper.WritablePaper;
 import com.site21.bittermelon.common.content.items.writingutensils.ChalkItem;
 import com.site21.bittermelon.common.content.items.writingutensils.HighlighterItem;
 import com.site21.bittermelon.common.systems.component.Smokable;
+import com.site21.bittermelon.common.systems.component.heavy.Heavy;
+import com.site21.bittermelon.common.systems.component.heavy.WeightSource;
 import com.site21.bittermelon.common.systems.component.medical.Retractor;
 import com.site21.bittermelon.common.systems.component.medical.Scalpel;
 import com.site21.bittermelon.common.systems.component.medical.Suture;
@@ -148,7 +150,7 @@ public class BitterItems {
             BitterBlocks.METAL_DRUM,
                     () -> new Item.Properties()
                             .stacksTo(1)
-                            .component(HEAVY.get(), Unit.INSTANCE)
+                            .component(HEAVY.get(), new Heavy(0.1f, WeightSource.FLUID))
     );
 
     public static final DeferredItem<FluidContainerItem> BEER_BOTTLE = ITEMS.register("beer_bottle", registryName ->

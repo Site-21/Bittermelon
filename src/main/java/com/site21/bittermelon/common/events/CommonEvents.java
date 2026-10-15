@@ -14,6 +14,8 @@ import com.site21.bittermelon.common.systems.character.CharacterManager;
 import com.site21.bittermelon.common.systems.character.networking.SyncActiveCharacter;
 import com.site21.bittermelon.common.systems.character.networking.SyncCharacters;
 import com.site21.bittermelon.common.systems.character.skills.SkillUpdater;
+import com.site21.bittermelon.common.systems.component.heavy.Heavy;
+import com.site21.bittermelon.common.systems.component.heavy.WeightSource;
 import com.site21.bittermelon.common.systems.medical.wound.HitCalculator;
 import com.site21.bittermelon.common.systems.rage.RageHandler;
 import com.site21.bittermelon.common.systems.stress.StressHandler;
@@ -21,6 +23,7 @@ import com.site21.bittermelon.common.systems.substance.SubstanceMixture;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import com.site21.bittermelon.common.systems.telecomms.intercom.IntercomManager;
 import com.site21.bittermelon.common.systems.telecomms.intercom.networking.SyncIntercomList;
+import com.site21.bittermelon.init.neoforge.BitterDataComponents;
 import com.site21.bittermelon.init.neoforge.BitterMobEffects;
 import com.site21.bittermelon.networking.server.SetLastTypingTime;
 import net.minecraft.ChatFormatting;
@@ -31,14 +34,19 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.ItemAttributeModifierEvent;
 import net.neoforged.neoforge.event.VanillaGameEvent;
 import net.neoforged.neoforge.event.entity.living.LivingBreatheEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
@@ -292,5 +300,32 @@ public class CommonEvents {
 
         Vec3 pos = event.getEventPosition();
         SweepArea.addActivity(new BlockPos((int) pos.x, (int) pos.y, (int) pos.z), 1);
+    }
+
+    @SubscribeEvent
+    public static void onModifiers(ItemAttributeModifierEvent event) {
+        ItemStack item = event.getItemStack();
+        if (item.has(BitterDataComponents.HEAVY.get())) {
+            Heavy heavy = item.getOrDefault(BitterDataComponents.HEAVY.get(), new Heavy(0));
+            double penalty = heavy.basePenalty() + WeightSource.getPenalty(heavy.source(), item);
+
+            event.addModifier(
+                    Attributes.MOVEMENT_SPEED,
+                    new AttributeModifier(
+                            Bittermelon.identifier("heavy_speed_penalty"),
+                            -penalty,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL),
+                    EquipmentSlotGroup.ANY
+            );
+
+            event.addModifier(
+                    Attributes.JUMP_STRENGTH,
+                    new AttributeModifier(
+                            Bittermelon.identifier("heavy_jump_penalty"),
+                            -penalty,
+                            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL),
+                    EquipmentSlotGroup.ANY
+            );
+        }
     }
 }

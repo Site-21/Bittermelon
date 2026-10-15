@@ -258,6 +258,26 @@ public class SubstanceMixture implements SubstanceContainer {
         return cachedViscosity;
     }
 
+    public int getAmount() {
+        int amount = 0;
+        for (SubstanceStack stack : substances) {
+            amount += stack.getAmount();
+        }
+        return amount;
+    }
+
+    /**
+     * Calculates the total mass of the substance mixture in grams.
+     * @return The total mass of the mixture in grams.
+     */
+    public double getMass() {
+        double mass = 0;
+        for (SubstanceStack stack : substances) {
+            mass += stack.getAmount() * stack.getSubstance().getMolarMass();
+        }
+        return mass;
+    }
+
     public String getContentsDescription() {
         if (substances.isEmpty()) {
             return "Empty";

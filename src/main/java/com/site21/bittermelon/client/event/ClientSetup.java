@@ -39,6 +39,7 @@ import com.site21.bittermelon.common.content.items.wire.client.WireFeatureRender
 import com.site21.bittermelon.common.content.items.wire.client.WireState;
 import com.site21.bittermelon.common.systems.carry.CarryHandler;
 import com.site21.bittermelon.common.systems.character.networking.UpdateCharacter;
+import com.site21.bittermelon.common.systems.component.heavy.HeavyDecorator;
 import com.site21.bittermelon.common.systems.component.screwdriver.ScrewdriverUseAnimation;
 import com.site21.bittermelon.common.systems.component.temperature.HeatDecorator;
 import com.site21.bittermelon.common.systems.fluid.simple.ClientSimpleFluid;
@@ -340,9 +341,12 @@ public class ClientSetup {
     @SubscribeEvent
     public static void onRenderInventorySlot(@NotNull RegisterItemDecorationsEvent event) {
         HeatDecorator heatDecorator = new HeatDecorator();
-        for (Item item : BuiltInRegistries.ITEM.stream().toList()) {
+        HeavyDecorator heavyDecorator = new HeavyDecorator();
+
+        BuiltInRegistries.ITEM.stream().forEach(item -> {
             event.register(item, heatDecorator);
-        }
+            event.register(item, heavyDecorator);
+        });
 
         event.register(BitterItems.KEYCARD, new KeycardDecorator());
     }

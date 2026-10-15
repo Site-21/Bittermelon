@@ -14,9 +14,9 @@ import static com.site21.bittermelon.init.neoforge.BitterDataComponents.TEMPERAT
 
 public class HeatDecorator implements IItemDecorator {
     @Override
-    public boolean render(@NotNull GuiGraphicsExtractor GuiGraphicsExtractor, @NotNull Font font, @NotNull ItemStack stack, int x, int y) {
-        if (stack.getOrDefault(TEMPERATURE, 0) <= 273) return false;
-        int temperature = stack.get(TEMPERATURE);
+    public boolean render(GuiGraphicsExtractor graphics, Font font, ItemStack stack, int x, int y) {
+        int temperature = stack.getOrDefault(TEMPERATURE, 0);
+        if (temperature <= 273) return false;
 
         int minTemp = 273;
         int maxTemp = 506;
@@ -25,10 +25,10 @@ public class HeatDecorator implements IItemDecorator {
         int red = (int) (255 * intensity);
         int color = 0x55000000 | (red << 16);
 
-        GuiGraphicsExtractor.fill(RenderPipelines.GUI, x, y, x + 16, y + 16, color);
+        graphics.fill(RenderPipelines.GUI, x, y, x + 16, y + 16, color);
 
         if (stack.get(BURN_TIME) != null) {
-            GuiGraphicsExtractor.blit(RenderPipelines.GUI_TEXTURED, Identifier.withDefaultNamespace("textures/block/fire_0.png"), x, y, 0, 16, 16, 16, 16, 16);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.withDefaultNamespace("textures/block/fire_0.png"), x, y, 0, 16, 16, 16, 16, 16);
         }
 
         return true;
