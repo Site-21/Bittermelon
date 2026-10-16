@@ -1,6 +1,6 @@
 package com.site21.bittermelon.common.systems.fluid.substance;
 
-import com.site21.bittermelon.init.neoforge.BitterFluidTags;
+import com.site21.bittermelon.init.neoforge.BitterFluidTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockAndLightGetter;
@@ -23,7 +23,7 @@ public class SubstanceFluidType extends FluidType {
 
     @Override
     public boolean canSwim(@NotNull Entity entity) {
-        if (entity.getFluidHeight(BitterFluidTags.SUBSTANCE) <= 0.4) {
+        if (entity.getFluidHeight(BitterFluidTypes.SUBSTANCE_FLUID_TYPE.get()) <= 0.4) {
             return false;
         }
 

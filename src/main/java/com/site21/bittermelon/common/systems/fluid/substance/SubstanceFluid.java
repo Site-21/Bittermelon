@@ -169,7 +169,7 @@ public class SubstanceFluid extends Fluid {
 
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             neighborPos.setWithOffset(pos, direction);
-            if (level.getBlockState(neighborPos).canBeReplaced() && canSpreadTo(level, neighborPos.below())) {
+            if (isEmpty(level, neighborPos) && canSpreadTo(level, neighborPos.below())) {
                 positions.add(neighborPos.immutable());
             }
         }
@@ -181,7 +181,7 @@ public class SubstanceFluid extends Fluid {
 
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             neighborPos.setWithOffset(pos, direction);
-            if (level.getBlockState(neighborPos).canBeReplaced()) {
+            if (isEmpty(level, neighborPos)) {
                 positions.add(neighborPos.immutable());
             } else if (canSpreadHorizontally(level, neighborPos, fluidBE)) {
                 backupPositions.add(neighborPos.immutable());
@@ -245,7 +245,7 @@ public class SubstanceFluid extends Fluid {
             return liquidBlockContainer.canPlaceLiquid(null, level, pos, blockState, this);
         }
 
-        return blockState.canBeReplaced();
+        return isEmpty(level, pos);
     }
 
     private boolean canSpreadHorizontally(Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE) {
@@ -263,7 +263,7 @@ public class SubstanceFluid extends Fluid {
             return liquidBlockContainer.canPlaceLiquid(null, level, pos, blockState, this);
         }
 
-        return blockState.canBeReplaced();
+        return isEmpty(level, pos);
     }
 
     private void equalizeSubstances(Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE, List<SubstanceFluidBlockEntity> touched) {
@@ -435,7 +435,7 @@ public class SubstanceFluid extends Fluid {
             if (fluidBE.getVolume() > SPREAD_THRESHOLD) {
                 for (Direction direction : Direction.Plane.HORIZONTAL) {
                     neighborPos.setWithOffset(pos, direction);
-                    if (level.getBlockState(neighborPos).canBeReplaced()) {
+                    if (isEmpty((Level) level, neighborPos)) {
                         flowX += direction.getStepX();
                         flowZ += direction.getStepZ();
                     }
@@ -450,6 +450,10 @@ public class SubstanceFluid extends Fluid {
         Vec3 flowDirection = new Vec3(flowX, 0.0, flowZ);
 
         return flowDirection.normalize();
+    }
+
+    private boolean isEmpty(Level level, BlockPos pos) {
+        return !level.getFluidState(pos).is(this) && level.getBlockState(pos).canBeReplaced();
     }
 
     @Override

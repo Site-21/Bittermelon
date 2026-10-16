@@ -7,7 +7,6 @@ import com.site21.bittermelon.init.neoforge.BitterSounds;
 import com.site21.bittermelon.util.SubstanceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
