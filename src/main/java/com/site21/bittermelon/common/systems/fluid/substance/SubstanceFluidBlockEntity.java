@@ -102,8 +102,7 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
         List<BlockPos> targets = new ArrayList<>(4);
         for (Direction direction : Direction.Plane.HORIZONTAL) {
             currentPos.setWithOffset(pos, direction);
-            if (level.getBlockState(currentPos).canBeReplaced()
-                    && level.getBlockEntity(currentPos) instanceof SubstanceFluidBlockEntity be
+            if (level.getBlockEntity(currentPos) instanceof SubstanceFluidBlockEntity be
                     && be.getVolume() < SubstanceFluid.FULL_BLOCK_VOLUME) {
                 targets.add(currentPos.immutable());
             }
