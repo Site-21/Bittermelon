@@ -209,6 +209,7 @@ public class BitterModelProvider extends ModelProvider {
         itemModels.generateFlatItem(PINK_PLASTIC_SCRAP.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(BitterBlocks.SCP_330.get().asItem(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(BitterBlocks.METAL_DRUM.get().asItem(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(BitterBlocks.SMALL_CARDBOARD_BOX.get().asItem(), ModelTemplates.FLAT_ITEM);
     }
 
     public void generateSCP1079(@NotNull ItemModelGenerators itemModels) {

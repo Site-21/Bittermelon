@@ -76,8 +76,9 @@ public class BitterBlocks {
     public static final DeferredBlock<SmallBox> SMALL_CARDBOARD_BOX = BLOCKS.registerBlock(
             "small_cardboard_box",
             properties -> new SmallBox(properties
-                    .destroyTime(-1)
-                    .sound(SoundType.WOOL))
+                    .destroyTime(0.5f)
+                    .sound(SoundType.WOOL)
+                    .noOcclusion())
     );
 
     public static final DeferredBlock<ATMBlock> ATM = BLOCKS.registerBlock(
@@ -132,12 +133,24 @@ public class BitterBlocks {
 
     public static final DeferredBlock<SecureDoorBlock> SECURE_DOOR = BLOCKS.registerBlock(
             "secure_door",
-            properties -> new SecureDoorBlock(BlockSetType.IRON, properties.noOcclusion())
+            properties -> new SecureDoorBlock(
+                    BlockSetType.IRON,
+                    properties
+                            .noOcclusion()
+                            .destroyTime(5)
+            )
     );
 
     public static final DeferredBlock<KeycardReaderSecureDoorBlock> KEYCARD_READER_SECURE_DOOR = BLOCKS.registerBlock(
             "keycard_reader_secure_door",
-            properties -> new KeycardReaderSecureDoorBlock(BlockSetType.IRON, properties.noOcclusion())
+            properties -> new KeycardReaderSecureDoorBlock(
+                    BlockSetType.IRON,
+                    properties
+                            .noOcclusion()
+                            .destroyTime(5)
+            )
+
+
     );
 
     public static final DeferredBlock<LargeSlidingDoorBlock> LARGE_SLIDING_DOOR = BLOCKS.registerBlock(
