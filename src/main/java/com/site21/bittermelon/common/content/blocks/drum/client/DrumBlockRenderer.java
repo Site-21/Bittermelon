@@ -98,7 +98,7 @@ public class DrumBlockRenderer implements BlockEntityRenderer<DrumBlockEntity, D
             float min = 0.1f;
             float max = 0.9f;
             float y0 = 0.125f;
-            float y1 = y0 + state.fillLevel * 0.75f;
+            float y1 = y0 + state.fillLevel * 0.89f;
             float u0 = state.sprite.getU0();
             float u1 = state.sprite.getU1();
             float v0 = state.sprite.getV0();
