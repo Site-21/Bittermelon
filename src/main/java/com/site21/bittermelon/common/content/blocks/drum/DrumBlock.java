@@ -7,6 +7,7 @@ import com.site21.bittermelon.init.neoforge.BitterSounds;
 import com.site21.bittermelon.util.SubstanceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -100,8 +101,11 @@ public class DrumBlock extends Block implements Fallable, EntityBlock {
             spill(level, pos, facing);
         }
 
-        if (isFree(level.getBlockState(pos.below())) && pos.getY() >= level.getMinY()) {
-            FallingBlockEntity.fall(level, pos, state);
+        if (isFree(level.getBlockState(pos.below()))
+                && pos.getY() >= level.getMinY()
+                && level.getBlockEntity(pos) instanceof BlockEntity be) {
+            FallingBlockEntity falling = FallingBlockEntity.fall(level, pos, state);
+            falling.blockData = be.saveWithoutMetadata(level.registryAccess());
         }
     }
 
