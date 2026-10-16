@@ -39,6 +39,7 @@ import com.site21.bittermelon.common.systems.fluid.simple.SimpleFluidBlock;
 import com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluidBlock;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.IceBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -417,6 +418,19 @@ public class BitterBlocks {
                             SoundEvents.ANVIL_HIT,
                             BitterSounds.METAL_DRUM_FLIP.value()
                     ))
+            )
+    );
+
+    public static final DeferredBlock<IceBlock> RED_ICE = BLOCKS.registerBlock(
+            "red_ice",
+            properties -> new IceBlock(properties
+                    .mapColor(MapColor.COLOR_RED)
+                    .strength(0.5f)
+                    .sound(SoundType.GLASS)
+                    .friction(0.98f)
+                    .speedFactor(1.05f)
+                    .noOcclusion()
+                    .noLootTable()
             )
     );
 }

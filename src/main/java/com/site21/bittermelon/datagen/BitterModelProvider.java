@@ -116,6 +116,7 @@ public class BitterModelProvider extends ModelProvider {
         createEyeballBlister(blockModels, BitterBlocks.EYEBALL_BLISTER.get());
         createWoodenSeat(blockModels, BitterBlocks.BLACK_WOODEN_SEAT.get(), "black");
         createDrum(blockModels, BitterBlocks.METAL_DRUM.get());
+        blockModels.createTrivialCube(BitterBlocks.RED_ICE.get());
 
         // SubstanceFluid Containers
         itemModels.generateFlatItem(BEER_BOTTLE.get(), ModelTemplates.FLAT_ITEM);

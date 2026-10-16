@@ -127,6 +127,13 @@ public class BitterItems {
             new StandingAndWallBlockItem(BitterBlocks.LIGHT_GRAY_TELEVISION.get(), BitterBlocks.LIGHT_GRAY_WALL_TELEVISION.get(), Direction.DOWN,
                     new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
     public static final DeferredItem<BlockItem> PLASTIC_FLAMINGO = ITEMS.registerSimpleBlockItem(BitterBlocks.PLASTIC_FLAMINGO);
+    public static final DeferredItem<BlockItem> METAL_BARREL = ITEMS.registerSimpleBlockItem(
+            BitterBlocks.METAL_DRUM,
+            () -> new Item.Properties()
+                    .stacksTo(1)
+                    .component(HEAVY.get(), new Heavy(0.1f, WeightSource.FLUID))
+    );
+    public static final DeferredItem<BlockItem> RED_ICE = ITEMS.registerSimpleBlockItem(BitterBlocks.RED_ICE);
 
     public static final DeferredItem<BlockItem> SCP_330 = ITEMS.registerSimpleBlockItem(
             BitterBlocks.SCP_330,
@@ -146,12 +153,6 @@ public class BitterItems {
     public static final DeferredItem<BlockItem> CAGE = ITEMS.registerSimpleBlockItem(BitterBlocks.CAGE);
     public static final DeferredItem<BlockItem> EYEBALL_BLISTER = ITEMS.registerSimpleBlockItem(BitterBlocks.EYEBALL_BLISTER);
     public static final DeferredItem<BlockItem> BLACK_WOODEN_SEAT = ITEMS.registerSimpleBlockItem(BitterBlocks.BLACK_WOODEN_SEAT);
-    public static final DeferredItem<BlockItem> METAL_BARREL = ITEMS.registerSimpleBlockItem(
-            BitterBlocks.METAL_DRUM,
-                    () -> new Item.Properties()
-                            .stacksTo(1)
-                            .component(HEAVY.get(), new Heavy(0.1f, WeightSource.FLUID))
-    );
 
     public static final DeferredItem<FluidContainerItem> BEER_BOTTLE = ITEMS.register("beer_bottle", registryName ->
             new GlassFluidContainerItem(new Item.Properties()
