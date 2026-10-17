@@ -44,7 +44,7 @@ import com.site21.bittermelon.common.systems.component.screwdriver.ScrewdriverUs
 import com.site21.bittermelon.common.systems.component.temperature.HeatDecorator;
 import com.site21.bittermelon.common.systems.fluid.simple.ClientSimpleFluid;
 import com.site21.bittermelon.common.systems.fluid.substance.client.ClientSubstanceFluid;
-import com.site21.bittermelon.common.systems.fluid.substance.client.SubstanceTintSource;
+import com.site21.bittermelon.common.systems.fluid.substance.client.SubstanceFluidTintSource;
 import com.site21.bittermelon.common.systems.medical.anatomy.client.AnatomyDebugRenderer;
 import com.site21.bittermelon.common.systems.medical.bodypart.LimbLayer;
 import com.site21.bittermelon.common.systems.medical.bodypart.PartInstance;
@@ -91,7 +91,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.PlayerModelType;
-import net.minecraft.world.item.Item;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -422,7 +421,7 @@ public class ClientSetup {
                 new Material(Identifier.withDefaultNamespace("block/water_still")),
                 new Material(Identifier.withDefaultNamespace("block/water_flow")),
                 new Material(Identifier.withDefaultNamespace("block/water_overlay")),
-                new SubstanceTintSource()
+                new SubstanceFluidTintSource()
         );
 
         event.register(substanceModel, BitterFluids.SUBSTANCE_FLUID);

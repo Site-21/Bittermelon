@@ -26,6 +26,7 @@ import com.site21.bittermelon.common.content.blocks.scp.scp151.SCP151BlockEntity
 import com.site21.bittermelon.common.content.blocks.stickynote.StickyNoteBlockEntity;
 import com.site21.bittermelon.common.content.blocks.wallwriting.WallWritingBlockEntity;
 import com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluidBlockEntity;
+import com.site21.bittermelon.common.systems.fluid.substance.SolidSubstanceBlockEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -136,4 +137,9 @@ public class BitterBlockEntities {
     public static final Supplier<BlockEntityType<DrumBlockEntity>> DRUM_BLOCK_ENTITY = BLOCK_ENTITY_TYPES.register(
             "drum_block_entity",
             () -> new BlockEntityType<>(DrumBlockEntity::new, false, METAL_DRUM.get()));
-    }
+
+    public static final Supplier<BlockEntityType<SolidSubstanceBlockEntity>> SOLID_SUBSTANCE_BLOCK_ENTITY = BitterBlockEntities.BLOCK_ENTITY_TYPES.register(
+            "solid_substance_block_entity",
+            () -> new BlockEntityType<>(SolidSubstanceBlockEntity::new, false, SOLID_SUBSTANCE.get(), RED_ICE.get()));
+}
+

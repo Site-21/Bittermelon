@@ -7,7 +7,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.neoforged.neoforge.client.fluid.FluidTintSource;
 
-public class SubstanceTintSource implements FluidTintSource {
+public class SubstanceFluidTintSource implements FluidTintSource {
     @Override
     public int color(FluidState state) {
         return 0xFF3F76E4;

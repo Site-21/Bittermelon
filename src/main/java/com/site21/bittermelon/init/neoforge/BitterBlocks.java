@@ -37,9 +37,9 @@ import com.site21.bittermelon.common.content.entities.cage.CageBlock;
 import com.site21.bittermelon.common.content.entities.scp718.SCP718BlisterBlock;
 import com.site21.bittermelon.common.systems.fluid.simple.SimpleFluidBlock;
 import com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluidBlock;
+import com.site21.bittermelon.common.systems.fluid.substance.SolidSubstanceBlock;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.IceBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
@@ -224,6 +224,16 @@ public class BitterBlocks {
                             .noLootTable()
                             .liquid()
                             .sound(SoundType.EMPTY)
+            )
+    );
+
+    public static final DeferredBlock<SolidSubstanceBlock> SOLID_SUBSTANCE = BLOCKS.registerBlock(
+            "solid_substance",
+            properties -> new SolidSubstanceBlock(
+                    properties
+                            .mapColor(MapColor.ICE)
+                            .noLootTable()
+                            .sound(SoundType.GLASS)
             )
     );
 
@@ -421,9 +431,9 @@ public class BitterBlocks {
             )
     );
 
-    public static final DeferredBlock<IceBlock> RED_ICE = BLOCKS.registerBlock(
+    public static final DeferredBlock<SolidSubstanceBlock> RED_ICE = BLOCKS.registerBlock(
             "red_ice",
-            properties -> new IceBlock(properties
+            properties -> new SolidSubstanceBlock(properties
                     .mapColor(MapColor.COLOR_RED)
                     .strength(0.5f)
                     .sound(SoundType.GLASS)

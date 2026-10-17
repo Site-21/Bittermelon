@@ -88,7 +88,6 @@ public class SubstanceFluidBlock extends Block implements LiquidBlockContainer, 
 
     @Override
     public boolean placeLiquid(LevelAccessor level, BlockPos pos, BlockState state, FluidState fluidState) {
-//        level.setBlock(pos, state.setValue(LEVEL, Math.clamp(state.getValue(LEVEL) + fluidState.getValue(LEVEL), 1, 16)), 3);
         level.setBlock(pos, state.setValue(LEVEL, fluidState.getAmount()), 3);
         return true;
     }

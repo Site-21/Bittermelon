@@ -2,6 +2,8 @@ package com.site21.bittermelon.common.systems.fluid.substance;
 
 import com.site21.bittermelon.common.systems.substance.SubstanceMixture;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
+import com.site21.bittermelon.init.custom.Substances;
+import com.site21.bittermelon.init.neoforge.BitterBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;

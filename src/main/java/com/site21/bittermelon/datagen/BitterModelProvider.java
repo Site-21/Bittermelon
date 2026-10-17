@@ -6,6 +6,7 @@ import com.site21.bittermelon.common.content.blocks.electronics.keycardreader.Ke
 import com.site21.bittermelon.common.content.blocks.electronics.redstonedevice.RedstoneDeviceBlock;
 import com.site21.bittermelon.common.content.blocks.electronics.television.StandingTelevisionBlock;
 import com.site21.bittermelon.common.content.blocks.poster.SmallPosterBlock;
+import com.site21.bittermelon.common.content.blocks.properties.BitterStateProperties;
 import com.site21.bittermelon.common.content.blocks.properties.Placement;
 import com.site21.bittermelon.common.content.blocks.stickynote.StickyNoteBlock;
 import com.site21.bittermelon.common.content.entities.scp718.SCP718BlisterBlock;
@@ -22,6 +23,7 @@ import net.minecraft.client.data.models.blockstates.MultiPartGenerator;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
 import net.minecraft.client.data.models.model.*;
+import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.renderer.block.dispatch.VariantMutator;
 import net.minecraft.client.renderer.item.ConditionalItemModel;
 import net.minecraft.client.renderer.item.ItemModel;
@@ -35,6 +37,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.BarrelBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoorHingeSide;
@@ -116,7 +119,8 @@ public class BitterModelProvider extends ModelProvider {
         createEyeballBlister(blockModels, BitterBlocks.EYEBALL_BLISTER.get());
         createWoodenSeat(blockModels, BitterBlocks.BLACK_WOODEN_SEAT.get(), "black");
         createDrum(blockModels, BitterBlocks.METAL_DRUM.get());
-        blockModels.createTrivialCube(BitterBlocks.RED_ICE.get());
+        layered(blockModels, BitterBlocks.RED_ICE.get());
+        blockModels.createParticleOnlyBlock(SOLID_SUBSTANCE.get());
 
         // SubstanceFluid Containers
         itemModels.generateFlatItem(BEER_BOTTLE.get(), ModelTemplates.FLAT_ITEM);
@@ -913,6 +917,26 @@ public class BitterModelProvider extends ModelProvider {
                                     };
                                 }))
         );
+    }
+
+    private void layered(BlockModelGenerators blockModels, Block block) {
+        TextureMapping mapping = TextureMapping.cube(TextureMapping.getBlockTexture(block));
+
+        Identifier[] models = new Identifier[20];
+        for (int n = 0; n < 19; n++) {
+            models[n] = BitterModelTemplates.LEVELS[n].create(block, mapping, blockModels.modelOutput);
+        }
+
+        models[19] = ModelTemplates.CUBE_ALL.create(block, mapping, blockModels.modelOutput);
+
+        blockModels.blockStateOutput.accept(
+                MultiVariantGenerator.dispatch(block).with(
+                        PropertyDispatch.initial(BitterStateProperties.LEVEL)
+                                .generate(level -> plainVariant(models[level - 1]))
+                )
+        );
+
+        blockModels.registerSimpleItemModel(block, models[0]);
     }
 
     @Contract(pure = true)
