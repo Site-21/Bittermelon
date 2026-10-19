@@ -155,7 +155,7 @@ public class SubstanceFluidBlock extends Block implements LiquidBlockContainer, 
             level.addAlwaysVisibleParticle(
                     BitterParticles.BUBBLE.get(),
                     x + random.nextFloat(),
-                    y + random.nextFloat(),
+                    y + random.nextFloat() * level.getFluidState(pos).getHeight(level, pos),
                     z + random.nextFloat(),
                     0.0,
                     0.04,
