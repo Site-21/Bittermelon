@@ -13,7 +13,6 @@ import java.util.*;
 
 public class ReactionManager {
     private static ReactionManager instance;
-    private final List<Reaction> reactions = new ArrayList<>();
     private final EnumMap<Nature, Set<Reaction>> natureToReactions = new EnumMap<>(Nature.class);
     private final Map<Substance, Set<Reaction>> substanceToReactions = new HashMap<>();
 
@@ -23,25 +22,22 @@ public class ReactionManager {
     }
 
     public void register(Reaction reaction) {
-        reactions.add(reaction);
-
         for (Reagent reagent : reaction.reagents()) {
             for (var entry : reagent.natureRequirements().entrySet()) {
                 natureToReactions
-                        .computeIfAbsent(entry.getKey(), k -> new HashSet<>())
+                        .computeIfAbsent(entry.getKey(), _ -> new HashSet<>())
                         .add(reaction);
             }
 
             for (Holder<Substance> holder : reagent.substanceRequirements()) {
                 substanceToReactions
-                        .computeIfAbsent(holder.value(), k -> new HashSet<>())
+                        .computeIfAbsent(holder.value(), _ -> new HashSet<>())
                         .add(reaction);
             }
         }
     }
 
     public void clear() {
-        reactions.clear();
         natureToReactions.clear();
         substanceToReactions.clear();
     }

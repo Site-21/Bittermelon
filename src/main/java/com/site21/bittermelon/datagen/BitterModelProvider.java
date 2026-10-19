@@ -23,7 +23,6 @@ import net.minecraft.client.data.models.blockstates.MultiPartGenerator;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
 import net.minecraft.client.data.models.model.*;
-import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.renderer.block.dispatch.VariantMutator;
 import net.minecraft.client.renderer.item.ConditionalItemModel;
 import net.minecraft.client.renderer.item.ItemModel;
@@ -37,7 +36,6 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.BarrelBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoorHingeSide;
@@ -120,7 +118,7 @@ public class BitterModelProvider extends ModelProvider {
         createWoodenSeat(blockModels, BitterBlocks.BLACK_WOODEN_SEAT.get(), "black");
         createDrum(blockModels, BitterBlocks.METAL_DRUM.get());
         layered(blockModels, BitterBlocks.RED_ICE.get());
-        blockModels.createParticleOnlyBlock(SOLID_SUBSTANCE.get());
+        layered(blockModels, BitterBlocks.FROZEN_SUBSTANCE.get());
 
         // SubstanceFluid Containers
         itemModels.generateFlatItem(BEER_BOTTLE.get(), ModelTemplates.FLAT_ITEM);
@@ -246,13 +244,6 @@ public class BitterModelProvider extends ModelProvider {
                         model
                 )
         );
-    }
-
-    public void generateClownHammer(@NotNull ItemModelGenerators itemModels) {
-        ItemModel.Unbaked model = ItemModelUtils.plainModel(
-                itemModels.createFlatItemModel(BitterItems.CLOWN_HAMMER.get(), ModelTemplates.FLAT_ITEM));
-
-        itemModels.itemModelOutput.accept(BitterItems.CLOWN_HAMMER.get(), model);
     }
 
     public void generateHandgun(@NotNull ItemModelGenerators itemModels) {
@@ -857,43 +848,6 @@ public class BitterModelProvider extends ModelProvider {
                                         .term(BlockStateProperties.EAST, false),
                                 legSE
                         )
-        );
-
-        blockModels.registerSimpleItemModel(block, ModelLocationUtils.getModelLocation(block));
-    }
-
-    public void createDrumOld(@NotNull BlockModelGenerators blockModels, Block block) {
-        Material side = getBlockTexture(block, "_side");
-        Material bottom = getBlockTexture(block, "_bottom");
-
-        TextureMapping closedMapping = new TextureMapping()
-                .put(TextureSlot.TOP, getBlockTexture(block, "_top"))
-                .put(TextureSlot.SIDE, side)
-                .put(TextureSlot.BOTTOM, bottom);
-        TextureMapping openMapping = new TextureMapping()
-                .put(TextureSlot.TOP, getBlockTexture(block, "_top_open"))
-                .put(TextureSlot.SIDE, side)
-                .put(TextureSlot.BOTTOM, bottom);
-
-        MultiVariant closed = plainVariant(
-                ModelTemplates.CUBE_BOTTOM_TOP.create(block, closedMapping, blockModels.modelOutput));
-        MultiVariant open = plainVariant(
-                ModelTemplates.CUBE_BOTTOM_TOP.createWithSuffix(block, "_open", openMapping, blockModels.modelOutput));
-
-        blockModels.blockStateOutput.accept(
-                MultiVariantGenerator.dispatch(block)
-                        .with(PropertyDispatch.initial(BarrelBlock.FACING, BarrelBlock.OPEN)
-                                .generate((facing, isOpen) -> {
-                                    MultiVariant base = isOpen ? open : closed;
-                                    return switch (facing) {
-                                        case DOWN -> base.with(X_ROT_180);
-                                        case NORTH -> base.with(X_ROT_90);
-                                        case EAST -> base.with(X_ROT_90).with(Y_ROT_90);
-                                        case SOUTH -> base.with(X_ROT_90).with(Y_ROT_180);
-                                        case WEST -> base.with(X_ROT_90).with(Y_ROT_270);
-                                        default -> base;
-                                    };
-                                }))
         );
 
         blockModels.registerSimpleItemModel(block, ModelLocationUtils.getModelLocation(block));

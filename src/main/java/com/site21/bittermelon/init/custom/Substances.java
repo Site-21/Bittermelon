@@ -3,6 +3,7 @@ package com.site21.bittermelon.init.custom;
 import com.site21.bittermelon.Bittermelon;
 import com.site21.bittermelon.common.systems.substance.Nature;
 import com.site21.bittermelon.common.systems.substance.Substance;
+import com.site21.bittermelon.common.systems.substance.SubstanceState;
 import com.site21.bittermelon.init.neoforge.BitterMobEffects;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -22,6 +23,23 @@ public class Substances {
     public static final DeferredHolder<Substance, Substance> WATER = SUBSTANCES.register("water", () -> new Substance(
             "Water",
             new Substance.Properties()
+                    .state(SubstanceState.LIQUID)
+                    .color(0x50AAD5DB)
+                    .nature(Nature.WATER_BASED, 1.0f)
+    ));
+
+    public static final DeferredHolder<Substance, Substance> ICE = SUBSTANCES.register("ice", () -> new Substance(
+            "Ice",
+            new Substance.Properties()
+                    .state(SubstanceState.SOLID)
+                    .color(0x50AAD5DB)
+                    .nature(Nature.WATER_BASED, 1.0f)
+    ));
+
+    public static final DeferredHolder<Substance, Substance> STEAM = SUBSTANCES.register("steam", () -> new Substance(
+            "Steam",
+            new Substance.Properties()
+                    .state(SubstanceState.GAS)
                     .color(0x50AAD5DB)
                     .nature(Nature.WATER_BASED, 1.0f)
     ));

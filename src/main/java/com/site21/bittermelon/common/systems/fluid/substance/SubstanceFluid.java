@@ -163,8 +163,7 @@ public class SubstanceFluid extends Fluid {
         );
     }
 
-    private void getDownwardSpreadPositions(Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE,
-                                            List<BlockPos> positions) {
+    private void getDownwardSpreadPositions(Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE, List<BlockPos> positions) {
         BlockPos.MutableBlockPos neighborPos = new BlockPos.MutableBlockPos();
 
         for (Direction direction : Direction.Plane.HORIZONTAL) {
@@ -393,17 +392,6 @@ public class SubstanceFluid extends Fluid {
     }
 
     @Override
-    public Item getBucket() {
-        return bucket.get();
-    }
-
-    @Override
-    protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos,
-                                        Fluid fluid, Direction direction) {
-        return true;
-    }
-
-    @Override
     protected Vec3 getFlow(BlockGetter level, BlockPos pos, FluidState state) {
         double flowX = 0.0;
         double flowZ = 0.0;
@@ -454,6 +442,16 @@ public class SubstanceFluid extends Fluid {
 
     private boolean isEmpty(Level level, BlockPos pos) {
         return !level.getFluidState(pos).is(this) && level.getBlockState(pos).canBeReplaced();
+    }
+
+    @Override
+    public Item getBucket() {
+        return bucket.get();
+    }
+
+    @Override
+    protected boolean canBeReplacedWith(FluidState state, BlockGetter level, BlockPos pos, Fluid fluid, Direction direction) {
+        return true;
     }
 
     @Override

@@ -47,4 +47,7 @@ public class BitterParticles {
 
     public static final Supplier<SimpleParticleType> BOOM = PARTICLES.register("boom",
             () -> new SimpleParticleType(false));
+
+    public static final Supplier<SimpleParticleType> BUBBLE = PARTICLES.register("bubble",
+            () -> new SimpleParticleType(false));
 }

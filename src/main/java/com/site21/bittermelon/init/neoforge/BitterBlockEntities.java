@@ -140,6 +140,6 @@ public class BitterBlockEntities {
 
     public static final Supplier<BlockEntityType<SolidSubstanceBlockEntity>> SOLID_SUBSTANCE_BLOCK_ENTITY = BitterBlockEntities.BLOCK_ENTITY_TYPES.register(
             "solid_substance_block_entity",
-            () -> new BlockEntityType<>(SolidSubstanceBlockEntity::new, false, SOLID_SUBSTANCE.get(), RED_ICE.get()));
+            () -> new BlockEntityType<>(SolidSubstanceBlockEntity::new, false, FROZEN_SUBSTANCE.get(), RED_ICE.get()));
 }
 

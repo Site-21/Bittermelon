@@ -33,7 +33,7 @@ public class Substance {
     private final Substance.Properties properties;
     private final DataComponentMap components;
 
-    public Substance(String name, @NotNull Properties properties) {
+    public Substance(String name, Properties properties) {
         this.name = name;
         this.properties = properties;
         components = properties.components.build();
@@ -69,6 +69,10 @@ public class Substance {
 
     public DataComponentMap components() {
         return components;
+    }
+
+    public SubstanceState getState() {
+        return properties.state;
     }
 
     public EnumMap<Nature, Float> getNature() {
@@ -120,6 +124,7 @@ public class Substance {
     }
 
     public static class Properties {
+        SubstanceState state = SubstanceState.LIQUID;
         EnumMap<Nature, Float> nature = new EnumMap<>(Nature.class);
         float molarMass = 18.02f; // g/mol
         float density = 1; // g/cm^3
@@ -133,6 +138,11 @@ public class Substance {
         List<MobEffectInstance> contactEffects = new ArrayList<>();
         private boolean applyDrugOnContact = false;
         private final DataComponentMap.Builder components = DataComponentMap.builder();
+
+        public Properties state(SubstanceState state) {
+            this.state = state;
+            return this;
+        }
 
         public Properties nature(Nature nature, float intensity) {
             this.nature.put(nature, intensity);

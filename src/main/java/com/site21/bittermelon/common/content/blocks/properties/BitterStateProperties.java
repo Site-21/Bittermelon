@@ -7,6 +7,5 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 public class BitterStateProperties {
     public static final EnumProperty<Placement> PLACEMENT = EnumProperty.create("placement", Placement.class);
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 1, 20);
-    public static final BooleanProperty FLOWING = BooleanProperty.create("flowing");
-    public static final BooleanProperty BLACK = BooleanProperty.create("black");
+    public static final BooleanProperty BUBBLING = BooleanProperty.create("bubbling");
 }

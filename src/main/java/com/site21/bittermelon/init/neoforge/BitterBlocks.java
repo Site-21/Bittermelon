@@ -64,15 +64,6 @@ public class BitterBlocks {
         return (state) -> (Boolean) state.getValue(BlockStateProperties.LIT) ? lightValue : 0;
     }
 
-    private static BlockBehaviour.Properties wallVariant(@NotNull Block baseBlock, boolean overrideDescription) {
-        BlockBehaviour.Properties properties = BlockBehaviour.Properties.of().overrideLootTable(baseBlock.getLootTable());
-        if (overrideDescription) {
-            properties = properties.overrideDescription(baseBlock.getDescriptionId());
-        }
-
-        return properties;
-    }
-
     public static final DeferredBlock<SmallBox> SMALL_CARDBOARD_BOX = BLOCKS.registerBlock(
             "small_cardboard_box",
             properties -> new SmallBox(properties
@@ -227,26 +218,28 @@ public class BitterBlocks {
 
     public static final DeferredBlock<SubstanceFluidBlock> SUBSTANCE_FLUID = BLOCKS.registerBlock(
             "substance_fluid_block",
-            properties -> new SubstanceFluidBlock(
-                    properties
-                            .mapColor(MapColor.WATER)
-                            .replaceable()
-                            .noCollision()
-                            .strength(100.0F)
-                            .pushReaction(PushReaction.DESTROY)
-                            .noLootTable()
-                            .liquid()
-                            .sound(SoundType.EMPTY)
+            properties -> new SubstanceFluidBlock(properties
+                    .mapColor(MapColor.WATER)
+                    .replaceable()
+                    .noCollision()
+                    .strength(100.0F)
+                    .pushReaction(PushReaction.DESTROY)
+                    .noLootTable()
+                    .liquid()
+                    .sound(SoundType.EMPTY)
             )
     );
 
-    public static final DeferredBlock<SolidSubstanceBlock> SOLID_SUBSTANCE = BLOCKS.registerBlock(
-            "solid_substance",
-            properties -> new SolidSubstanceBlock(
-                    properties
-                            .mapColor(MapColor.ICE)
-                            .noLootTable()
-                            .sound(SoundType.GLASS)
+    public static final DeferredBlock<SolidSubstanceBlock> FROZEN_SUBSTANCE = BLOCKS.registerBlock(
+            "frozen_substance",
+            properties -> new SolidSubstanceBlock(properties
+                    .mapColor(MapColor.ICE)
+                    .strength(0.5f)
+                    .sound(SoundType.GLASS)
+                    .friction(0.98f)
+                    .speedFactor(1.05f)
+                    .noOcclusion()
+                    .noLootTable()
             )
     );
 

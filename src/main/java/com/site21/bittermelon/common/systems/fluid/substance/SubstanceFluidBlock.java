@@ -1,7 +1,12 @@
 package com.site21.bittermelon.common.systems.fluid.substance;
 
 import com.site21.bittermelon.common.content.blocks.properties.BitterStateProperties;
+import com.site21.bittermelon.init.neoforge.BitterParticles;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.Block;
@@ -30,6 +35,7 @@ import static com.site21.bittermelon.init.neoforge.BitterFluids.SUBSTANCE_FLUID;
 public class SubstanceFluidBlock extends Block implements LiquidBlockContainer, EntityBlock {
     public static final IntegerProperty LEVEL = BitterStateProperties.LEVEL;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
+    public static final BooleanProperty BUBBLING = BitterStateProperties.BUBBLING;
 
     private static final VoxelShape SHAPE = Shapes.box(0, 0, 0, 1, 0.05, 1);
     private final List<FluidState> stateCache;
@@ -37,7 +43,11 @@ public class SubstanceFluidBlock extends Block implements LiquidBlockContainer, 
 
     public SubstanceFluidBlock(Properties properties) {
         super(properties);
-        registerDefaultState(getStateDefinition().any().setValue(LEVEL, 20).setValue(LIT, false));
+        registerDefaultState(getStateDefinition().any()
+                .setValue(LEVEL, 20)
+                .setValue(LIT, false)
+                .setValue(BUBBLING, false)
+        );
         this.stateCache = new ArrayList<>();
         this.fluid = SUBSTANCE_FLUID.get();
 
@@ -48,7 +58,7 @@ public class SubstanceFluidBlock extends Block implements LiquidBlockContainer, 
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(LEVEL, LIT);
+        builder.add(LEVEL, LIT, BUBBLING);
     }
 
     @Override
@@ -95,6 +105,73 @@ public class SubstanceFluidBlock extends Block implements LiquidBlockContainer, 
     private void tick(Level level, BlockPos pos) {
         if (!level.getFluidTicks().hasScheduledTick(pos, fluid)) {
             level.scheduleTick(pos, fluid, fluid.getTickDelay(level));
+        }
+    }
+
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
+        if (state.getValue(LIT)) {
+            if (random.nextInt(24) == 0) {
+                level.playLocalSound(
+                        pos.getX() + 0.5f,
+                        pos.getY() + 0.5f,
+                        pos.getZ() + 0.5f,
+                        SoundEvents.FIRE_AMBIENT,
+                        SoundSource.BLOCKS,
+                        1.0f + random.nextFloat(),
+                        random.nextFloat() * 0.7f + 0.3f,
+                        false
+                );
+            }
+
+            for (int i = 0; i < 3; ++i) {
+                level.addParticle(
+                        ParticleTypes.LARGE_SMOKE,
+                        pos.getX() + random.nextFloat(),
+                        pos.getY() + random.nextFloat() * 0.5f + 0.5f,
+                        pos.getZ() + random.nextFloat(),
+                        0.0f,
+                        0.0f,
+                        0.0f
+                );
+            }
+        }
+
+        if (state.getValue(BUBBLING)) {
+            int x = pos.getX();
+            int y = pos.getY();
+            int z = pos.getZ();
+
+            level.addAlwaysVisibleParticle(
+                    BitterParticles.BUBBLE.get(),
+                    x + 0.5,
+                    y,
+                    z + 0.5,
+                    0.0,
+                    0.04,
+                    0.0
+            );
+
+            level.addAlwaysVisibleParticle(
+                    BitterParticles.BUBBLE.get(),
+                    x + random.nextFloat(),
+                    y + random.nextFloat(),
+                    z + random.nextFloat(),
+                    0.0,
+                    0.04,
+                    0.0
+            );
+
+            level.playLocalSound(
+                    x + 0.5f,
+                    y + 0.5f,
+                    z + 0.5f,
+                    SoundEvents.BUBBLE_COLUMN_UPWARDS_AMBIENT,
+                    SoundSource.BLOCKS,
+                    0.2f,
+                    0.5f,
+                    false
+            );
         }
     }
 }

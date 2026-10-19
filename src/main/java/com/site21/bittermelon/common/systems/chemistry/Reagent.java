@@ -48,6 +48,10 @@ public record Reagent(
         return new Reagent(proportion, order, natures, new HashSet<>(substanceRequirements));
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public static class Builder {
         private int proportion = 1;
         private int order = 0;

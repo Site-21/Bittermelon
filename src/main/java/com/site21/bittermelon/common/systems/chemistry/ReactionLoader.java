@@ -22,11 +22,14 @@ public class ReactionLoader extends SimpleJsonResourceReloadListener<Reaction> {
     protected void apply(Map<Identifier, Reaction> object, ResourceManager resourceManager, ProfilerFiller profiler) {
         ReactionManager manager = ReactionManager.getInstance();
         manager.clear();
+        Reactions.register();
+
         object.forEach((location, reaction) -> {
                     validate(location, reaction);
                     manager.register(reaction);
                 }
         );
+
         Bittermelon.LOGGER.info("Loaded {} reactions", object.size());
     }
 

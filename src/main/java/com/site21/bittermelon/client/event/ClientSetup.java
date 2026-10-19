@@ -3,6 +3,7 @@ package com.site21.bittermelon.client.event;
 import com.google.common.reflect.TypeToken;
 import com.site21.bittermelon.Bittermelon;
 import com.site21.bittermelon.client.particles.BoomParticle;
+import com.site21.bittermelon.client.particles.BubbleParticle;
 import com.site21.bittermelon.client.particles.KapowParticle;
 import com.site21.bittermelon.client.particles.PlasticParticle;
 import com.site21.bittermelon.client.render.FogRenderer;
@@ -44,6 +45,7 @@ import com.site21.bittermelon.common.systems.component.screwdriver.ScrewdriverUs
 import com.site21.bittermelon.common.systems.component.temperature.HeatDecorator;
 import com.site21.bittermelon.common.systems.fluid.simple.ClientSimpleFluid;
 import com.site21.bittermelon.common.systems.fluid.substance.client.ClientSubstanceFluid;
+import com.site21.bittermelon.common.systems.fluid.substance.client.SolidSubstanceTintSource;
 import com.site21.bittermelon.common.systems.fluid.substance.client.SubstanceFluidTintSource;
 import com.site21.bittermelon.common.systems.medical.anatomy.client.AnatomyDebugRenderer;
 import com.site21.bittermelon.common.systems.medical.bodypart.LimbLayer;
@@ -102,6 +104,7 @@ import net.neoforged.neoforge.client.renderstate.AvatarRenderStateModifier;
 import net.neoforged.neoforge.client.renderstate.RegisterRenderStateModifiersEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.site21.bittermelon.common.systems.medical.bodypart.client.BodyPartModels.registerBodyPartModel;
@@ -126,10 +129,6 @@ public class ClientSetup {
 
     public static final ContextKey<Boolean> EYEBALL_GROWTH = new ContextKey<>(
             Bittermelon.identifier("eyeball_growth")
-    );
-
-    public static final ContextKey<Map<BlockPos, Integer>> BLOCK_DAMAGE = new ContextKey<>(
-            Bittermelon.identifier("block_damage")
     );
 
     public static final ContextKey<SleepTransforms.SleepTransform> SLEEP_TRANSFORM = new ContextKey<>(
@@ -366,6 +365,7 @@ public class ClientSetup {
         event.registerSpriteSet(BitterParticles.PLASTIC.get(), PlasticParticle.Provider::new);
         event.registerSpriteSet(BitterParticles.KAPOW.get(), KapowParticle.Provider::new);
         event.registerSpriteSet(BitterParticles.BOOM.get(), BoomParticle.Provider::new);
+        event.registerSpriteSet(BitterParticles.BUBBLE.get(), BubbleParticle.Provider::new);
     }
 
     @SubscribeEvent
@@ -425,6 +425,11 @@ public class ClientSetup {
         );
 
         event.register(substanceModel, BitterFluids.SUBSTANCE_FLUID);
+    }
+
+    @SubscribeEvent
+    public static void registerBlockTintSources(RegisterColorHandlersEvent.BlockTintSources event) {
+        event.register(List.of(new SolidSubstanceTintSource()), BitterBlocks.FROZEN_SUBSTANCE.get());
     }
 
     @SubscribeEvent

@@ -14,15 +14,16 @@ import java.util.Map;
 public record Reaction(
         List<Reagent> reagents,
         List<ReactionCondition> conditions,
-        int minTemperature,
-        int temperatureChange,
+        float minTemperature,
+        float maxTemperature,
+        float temperatureChange,
         List<ReactionEffect> effects,
         List<ReactionEffect> finishEffects
 ) {
     public static final Codec<Reaction> CODEC;
 
     public boolean canOccur(SubstanceContainer substanceContainer, float temperature, Level level, BlockPos pos) {
-        if (temperature < minTemperature) return false;
+        if (temperature < minTemperature || temperature >= maxTemperature) return false;
 
         for (ReactionCondition condition : conditions) {
             if (!condition.test(substanceContainer, level, pos)) {
@@ -49,6 +50,7 @@ public record Reaction(
     }
 
     public boolean react(SubstanceContainer substanceContainer, Level level, BlockPos pos) {
+        if (!canOccur(substanceContainer, substanceContainer.getTemperature(), level, pos)) return false;
         Map<SubstanceStack, Reagent> reactants = new HashMap<>();
         int scaledAmount = getReactionRate(substanceContainer, level, pos);
 
@@ -107,19 +109,22 @@ public record Reaction(
                         .fieldOf("reagents")
                         .forGetter(Reaction::reagents),
                 ReactionCondition.CODEC.listOf()
-                        .fieldOf("conditions")
+                        .optionalFieldOf("conditions", List.of())
                         .forGetter(Reaction::conditions),
-                Codec.INT
-                        .fieldOf("min_temperature")
+                Codec.FLOAT
+                        .optionalFieldOf("min_temperature", 0.0f)
                         .forGetter(Reaction::minTemperature),
-                Codec.INT
-                        .fieldOf("temperature_change")
+                Codec.FLOAT
+                        .optionalFieldOf("max_temperature", Float.MAX_VALUE)
+                        .forGetter(Reaction::maxTemperature),
+                Codec.FLOAT
+                        .optionalFieldOf("temperature_change", 0.0f)
                         .forGetter(Reaction::temperatureChange),
                 ReactionEffect.CODEC.listOf()
-                        .fieldOf("effects")
+                        .optionalFieldOf("effects", List.of())
                         .forGetter(Reaction::effects),
                 ReactionEffect.CODEC.listOf()
-                        .fieldOf("finish_effects")
+                        .optionalFieldOf("finish_effects", List.of())
                         .forGetter(Reaction::finishEffects)
         ).apply(instance, Reaction::new));
     }

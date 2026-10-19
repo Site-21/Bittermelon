@@ -2,8 +2,7 @@ package com.site21.bittermelon.common.systems.fluid.substance;
 
 import com.site21.bittermelon.common.systems.substance.SubstanceMixture;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
-import com.site21.bittermelon.init.custom.Substances;
-import com.site21.bittermelon.init.neoforge.BitterBlocks;
+import com.site21.bittermelon.common.systems.substance.SubstanceState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -22,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluidBlock.BUBBLING;
 import static com.site21.bittermelon.init.neoforge.BitterBlockEntities.SUBSTANCE_FLUID_BLOCK_ENTITY;
 import static com.site21.bittermelon.init.neoforge.BitterFluids.SUBSTANCE_FLUID;
 import static net.minecraft.world.level.block.Block.*;
@@ -35,15 +35,14 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
             Direction.EAST,
             Direction.WEST
     };
-    private SubstanceMixture mixture;
-    private final Runnable mixtureChangedCallback = this::onMixtureChanged;
+    private final SubstanceMixture mixture;
     private boolean dirty;
     private int lastSyncedColor;
     private int syncedColor;
 
     public SubstanceFluidBlockEntity(BlockPos pos, BlockState blockState) {
         super(SUBSTANCE_FLUID_BLOCK_ENTITY.get(), pos, blockState);
-        mixture = new SubstanceMixture(mixtureChangedCallback);
+        mixture = new SubstanceMixture(this::onMixtureChanged);
         mixture.setTemperature(500);
     }
 
@@ -66,6 +65,7 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
     }
 
     public void update(ServerLevel level) {
+        if (isRemoved()) return;
         if (!dirty) return;
         dirty = false;
 
@@ -76,6 +76,20 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
         }
 
         BlockState state = getBlockState();
+
+        // TODO: only trigger when new substance is added or removed
+        boolean bubbling = state.getValue(BUBBLING);
+        boolean hasGas = false;
+        for (SubstanceStack stack : getMixture().getSubstances()) {
+            if (stack.getSubstance().getState() == SubstanceState.GAS) {
+                hasGas = true;
+                break;
+            }
+        }
+
+        if (hasGas != bubbling) {
+            level.setBlock(worldPosition, state.setValue(BUBBLING, hasGas), UPDATE_CLIENTS);
+        }
 
         int targetLevel = fluid.getBlockLevel(volume);
         if (targetLevel != state.getValue(SubstanceFluidBlock.LEVEL)) {
