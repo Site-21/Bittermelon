@@ -1,13 +1,14 @@
 package com.site21.bittermelon.client.particles;
 
 import com.site21.bittermelon.common.systems.fluid.substance.MixtureOwner;
-import com.site21.bittermelon.init.neoforge.BitterFluidTags;
+import com.site21.bittermelon.init.neoforge.BitterFluids;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.*;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.material.FluidState;
 
 public class BubbleParticle extends SingleQuadParticle {
     private static final float VELOCITY_SCALE = 0.2f;
@@ -16,8 +17,8 @@ public class BubbleParticle extends SingleQuadParticle {
 
     public BubbleParticle(ClientLevel level, double x, double y, double z, double xa, double ya, double za, TextureAtlasSprite sprite) {
         super(level, x, y, z, sprite);
-        this.gravity = -0.125f;
-        this.friction = 0.85f;
+        this.gravity = -0.8f;
+        this.friction = 0.92f;
         this.setSize(0.02f, 0.02f);
         this.quadSize *= random.nextFloat() * 0.6f + 0.2f;
         this.xd = initialVelocity(xa);
@@ -41,7 +42,14 @@ public class BubbleParticle extends SingleQuadParticle {
 
     public void tick() {
         super.tick();
-        if (!removed && !level.getFluidState(BlockPos.containing(x, y, z)).is(BitterFluidTags.SUBSTANCE)) {
+        if (removed) {
+            remove();
+            return;
+        }
+
+        BlockPos pos = BlockPos.containing(x, y, z);
+        FluidState fluidState = level.getFluidState(pos);
+        if (!fluidState.is(BitterFluids.SUBSTANCE_FLUID.get()) || y > fluidState.getHeight(level, pos) + pos.getY()) {
             remove();
         }
     }

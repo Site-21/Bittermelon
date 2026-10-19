@@ -33,6 +33,7 @@ public class Substances {
             new Substance.Properties()
                     .state(SubstanceState.SOLID)
                     .color(0x50AAD5DB)
+                    .density(0.917f)
                     .nature(Nature.WATER_BASED, 1.0f)
     ));
 
@@ -41,6 +42,7 @@ public class Substances {
             new Substance.Properties()
                     .state(SubstanceState.GAS)
                     .color(0x50AAD5DB)
+                    .density(0.597f)
                     .nature(Nature.WATER_BASED, 1.0f)
     ));
 
