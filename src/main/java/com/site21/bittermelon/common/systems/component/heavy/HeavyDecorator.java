@@ -14,11 +14,15 @@ public class HeavyDecorator implements IItemDecorator {
     public boolean render(GuiGraphicsExtractor graphics, Font font, ItemStack stack, int xOffset, int yOffset) {
         if (!stack.has(HEAVY)) return false;
 
+        int size = 6;
+
         graphics.blit(
                 RenderPipelines.GUI_TEXTURED,
                 Bittermelon.identifier("textures/gui/heavy.png"),
-                xOffset,
-                yOffset, 0, 16,
+                xOffset + 16 - size,
+                yOffset + 16 - size,
+                0, 0,
+                size, size,
                 16, 16,
                 16, 16
         );

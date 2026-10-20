@@ -2,8 +2,11 @@ package com.site21.bittermelon.common.content.blocks.container.smallbox;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -70,6 +73,15 @@ public class SmallBox extends BaseEntityBlock {
     public BlockState getStateForPlacement(@NotNull BlockPlaceContext context) {
         return Objects.requireNonNull(super.getStateForPlacement(context))
                 .setValue(ROTATION, RotationSegment.convertToSegment(context.getRotation()));
+    }
+
+    @Override
+    public void fallOn(@NotNull Level level, @NotNull BlockState state, @NotNull BlockPos pos, @NotNull Entity entity, double fallDistance) {
+        super.fallOn(level, state, pos, entity, fallDistance);
+
+        if (!level.isClientSide() && entity instanceof Player) {
+            level.destroyBlock(pos, true);
+        }
     }
 
 
