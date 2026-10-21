@@ -1,5 +1,5 @@
 {
-  "parent": "bittermelon:block/base/small_block_67.5",
+  "parent": "bittermelon:block/small_block_67.5",
   "textures": {
     "texture": "bittermelon:block/small_cardboard_box"
   }
