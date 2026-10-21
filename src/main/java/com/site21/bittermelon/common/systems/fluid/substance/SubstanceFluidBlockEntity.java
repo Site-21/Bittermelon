@@ -39,11 +39,12 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
     private boolean dirty;
     private int lastSyncedColor;
     private int syncedColor;
+    private boolean converting;
 
     public SubstanceFluidBlockEntity(BlockPos pos, BlockState blockState) {
         super(SUBSTANCE_FLUID_BLOCK_ENTITY.get(), pos, blockState);
         mixture = new SubstanceMixture(this::onMixtureChanged);
-        mixture.setTemperature(500);
+        mixture.setTemperature(50);
     }
 
     public void onMixtureChanged() {
@@ -65,8 +66,7 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
     }
 
     public void update(ServerLevel level) {
-        if (isRemoved()) return;
-        if (!dirty) return;
+        if (isRemoved() || !dirty) return;
         dirty = false;
 
         int volume = getVolume();
@@ -82,6 +82,8 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
         boolean hasGas = false;
         for (SubstanceStack stack : getMixture().getSubstances()) {
             if (stack.getSubstance().getState() == SubstanceState.GAS) {
+                // TODO: temp solution, eventually use atmos system
+                getMixture().removeSubstance(stack, (int) (stack.getAmount() * 0.01f));
                 hasGas = true;
                 break;
             }
@@ -106,13 +108,18 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
         ensureTicking(level);
     }
 
+    public void beginConversion() {
+        converting = true;
+    }
+
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        if (level == null || level.isClientSide()) return;
+        if (level == null || level.isClientSide() || converting) return;
         displace(level, pos);
     }
 
     private void displace(Level level, BlockPos pos) {
+        if (mixture.getVolume() <= 0) return;
         BlockPos.MutableBlockPos currentPos = new BlockPos.MutableBlockPos();
 
         List<BlockPos> targets = new ArrayList<>(4);

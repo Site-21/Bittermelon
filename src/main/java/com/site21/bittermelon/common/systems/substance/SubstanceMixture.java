@@ -6,6 +6,7 @@ import com.site21.bittermelon.common.systems.chemistry.Reaction;
 import com.site21.bittermelon.common.systems.chemistry.ReactionManager;
 import com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluid;
 import com.site21.bittermelon.util.ColorUtil;
+import com.site21.bittermelon.util.SubstanceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -278,6 +279,18 @@ public class SubstanceMixture implements SubstanceContainer {
         return mass;
     }
 
+    public float getSolidFraction() {
+        int total = getVolume();
+        if (total <= 0) return 0;
+        int solid = 0;
+        for (SubstanceStack stack : substances) {
+            if (stack.getSubstance().getState() == SubstanceState.SOLID) {
+                solid += stack.getVolume();
+            }
+        }
+        return (float) solid / total;
+    }
+
     public String getContentsDescription() {
         if (substances.isEmpty()) {
             return "Empty";
@@ -297,47 +310,16 @@ public class SubstanceMixture implements SubstanceContainer {
         return getVolume() - SubstanceFluid.FULL_BLOCK_VOLUME;
     }
 
-    public List<SubstanceStack> spreadSubstancesByVolume(int transferVolume) {
-        float currentVolume = getVolume();
-
-        if (currentVolume <= 0) {
-            return Collections.emptyList();
-        }
-
-        List<SubstanceStack> spreadStacks = new ArrayList<>();
-        float ratio = (float) transferVolume / currentVolume;
-
-        for (SubstanceStack stack : substances) {
-            int amount = (int) (stack.getAmount() * ratio);
-
-            if (amount > 0) {
-                SubstanceStack spreadStack = stack.copy();
-                spreadStack.setAmount(amount);
-                spreadStacks.add(spreadStack);
-            }
-        }
-
-        return spreadStacks;
+    public List<SubstanceStack> spreadSubstancesByVolume(int spreadVolume) {
+        return SubstanceUtil.spreadSubstancesByVolume(substances, getVolume(), spreadVolume);
     }
 
     public List<SubstanceStack> spreadSubstancesByPercentage(float percentage) {
-        return spreadSubstancesByVolume((int) (getVolume() * percentage));
+        return SubstanceUtil.spreadSubstancesByPercentage(substances, getVolume(), percentage);
     }
 
     public List<SubstanceStack> splitSubstances(int spreadCount, int pruneThreshold) {
-        List<SubstanceStack> spreadStacks = new ArrayList<>();
-
-        for (SubstanceStack stack : substances) {
-            int amount = stack.getAmount() / spreadCount;
-
-            if (amount > pruneThreshold) {
-                SubstanceStack spreadStack = stack.copy();
-                spreadStack.setAmount(amount);
-                spreadStacks.add(spreadStack);
-            }
-        }
-
-        return spreadStacks;
+        return SubstanceUtil.splitSubstances(substances, spreadCount, pruneThreshold);
     }
 
     @Override

@@ -8,6 +8,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static com.site21.bittermelon.init.neoforge.BitterFluids.SUBSTANCE_FLUID;
@@ -20,7 +22,7 @@ public final class SubstanceUtil {
      * @param substances the list of SubstanceStacks
      * @return the total amount of substance in moles
      */
-    public static int getTotalAmount(@NotNull List<SubstanceStack> substances) {
+    public static int getTotalVolume(@NotNull List<SubstanceStack> substances) {
         return substances.stream()
                 .map(SubstanceStack::getVolume)
                 .reduce(0, Integer::sum);
@@ -34,7 +36,7 @@ public final class SubstanceUtil {
      * @return the pressure in kPa
      */
     public static float getPressure(List<SubstanceStack> substances, float volume, float temperature) {
-        return SubstanceUtil.getTotalAmount(substances) * GAS_CONSTANT * temperature / volume;
+        return SubstanceUtil.getTotalVolume(substances) * GAS_CONSTANT * temperature / volume;
     }
 
 
@@ -89,5 +91,65 @@ public final class SubstanceUtil {
         }
 
         return false;
+    }
+
+    /**
+     * Spread a list of substances by volume, returning a new list of SubstanceStacks with the same substances but with amounts scaled by the ratio of spreadVolume to totalVolume.
+     * @param substances the list of substances to spread
+     * @param totalVolume the total volume of the substances
+     * @param spreadVolume the volume to spread the substances to
+     * @return a new list of SubstanceStacks with the same substances but with amounts scaled by the ratio of spreadVolume to totalVolume
+     */
+    public static List<SubstanceStack> spreadSubstancesByVolume(List<SubstanceStack> substances, int totalVolume, int spreadVolume) {
+        if (totalVolume <= 0) return Collections.emptyList();
+
+        List<SubstanceStack> spreadStacks = new ArrayList<>();
+        float ratio = (float) spreadVolume / totalVolume;
+
+        for (SubstanceStack stack : substances) {
+            int amount = (int) (stack.getAmount() * ratio);
+
+            if (amount > 0) {
+                SubstanceStack spreadStack = stack.copy();
+                spreadStack.setAmount(amount);
+                spreadStacks.add(spreadStack);
+            }
+        }
+
+        return spreadStacks;
+    }
+
+    /**
+     * Spread a list of substances by percentage, returning a new list of SubstanceStacks with the same substances but with amounts scaled by the given percentage.
+     * @param substances the list of substances to spread
+     * @param totalVolume the total volume of the substances
+     * @param percentage the percentage to spread the substances by
+     * @return a new list of SubstanceStacks with the same substances but with amounts scaled by the given percentage
+     */
+    public static List<SubstanceStack> spreadSubstancesByPercentage(List<SubstanceStack> substances, int totalVolume, float percentage) {
+        return spreadSubstancesByVolume(substances, totalVolume, (int) (totalVolume * percentage));
+    }
+
+    /**
+     * Split a list of substances into a given number of stacks, pruning any stacks that would have an amount below the given threshold.
+     * @param substances the list of substances to split
+     * @param spreadCount the number of stacks to split the substances into
+     * @param pruneThreshold the minimum amount for a stack to be included in the result
+     * @return a new list of SubstanceStacks with the same substances but with amounts scaled by the ratio of 1/spreadCount, excluding any stacks below the pruneThreshold
+     */
+    public static List<SubstanceStack> splitSubstances(List<SubstanceStack> substances, int spreadCount, int pruneThreshold) {
+        List<SubstanceStack> spreadStacks = new ArrayList<>();
+
+        for (SubstanceStack stack : substances) {
+            int amount = stack.getAmount() / spreadCount;
+
+            if (amount > pruneThreshold) {
+                SubstanceStack spreadStack = stack.copy();
+                spreadStack.setAmount(amount);
+                spreadStacks.add(spreadStack);
+            }
+        }
+
+        return spreadStacks;
     }
 }

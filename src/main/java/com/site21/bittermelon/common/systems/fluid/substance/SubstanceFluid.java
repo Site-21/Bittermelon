@@ -6,7 +6,9 @@ import com.site21.bittermelon.common.systems.blockdamage.BlockDamageUtil;
 import com.site21.bittermelon.common.systems.substance.Substance;
 import com.site21.bittermelon.common.systems.substance.SubstanceMixture;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
+import com.site21.bittermelon.common.systems.substance.SubstanceState;
 import com.site21.bittermelon.init.neoforge.BitterFluidTypes;
+import com.site21.bittermelon.util.SubstanceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -39,14 +41,17 @@ import java.util.*;
 import java.util.function.Supplier;
 
 import static com.site21.bittermelon.init.neoforge.BitterAttachmentTypes.STAINS;
+import static com.site21.bittermelon.init.neoforge.BitterBlocks.FROZEN_SUBSTANCE;
 import static com.site21.bittermelon.init.neoforge.BitterBlocks.SUBSTANCE_FLUID;
 
 public class SubstanceFluid extends Fluid {
     public static final IntegerProperty LEVEL = BitterStateProperties.LEVEL;
     public static final int FULL_BLOCK_VOLUME = 1000;
-    private static final int SPREAD_THRESHOLD = 100;
-    private static final int PRESSURE_THRESHOLD = 100;
-    private static final float DOWNWARDS_SPREAD_RATIO = 0.85f;
+    public static final int SPREAD_THRESHOLD = 100;
+    public static final int PRESSURE_THRESHOLD = 100;
+    public static final float DOWNWARDS_SPREAD_RATIO = 0.85f;
+    public static final float FREEZE_FRACTION = 0.6f;
+    public static final float MELT_FRACTION = 0.4f;
 
     private final Map<FluidState, VoxelShape> shapes = Maps.newIdentityHashMap();
     private final Supplier<? extends BucketItem> bucket;
@@ -76,7 +81,7 @@ public class SubstanceFluid extends Fluid {
             }
 
             fluidBE.getMixture().tickReactions(level, pos);
-
+            if (tryFreeze(level, pos, fluidBE)) return;
             if (spreadDownwards(level, pos, fluidBE, touched)) return;
 
             int volume = fluidBE.getVolume();
@@ -156,10 +161,10 @@ public class SubstanceFluid extends Fluid {
                 Math.round(sourceVolume * DOWNWARDS_SPREAD_RATIO) / spreadCount :
                 sourceVolume / (spreadCount + 1);
 
-        return spreadSubstancesByVolume(
+        return SubstanceUtil.spreadSubstancesByVolume(
                 fluidBE.getMixture().getSubstances(),
-                spreadVolume,
-                sourceVolume
+                sourceVolume,
+                spreadVolume
         );
     }
 
@@ -199,8 +204,11 @@ public class SubstanceFluid extends Fluid {
         BlockPos abovePos = pos.above();
 
         if (level.getFluidState(abovePos).is(this) || level.getBlockState(abovePos).canBeReplaced()) {
-            List<SubstanceStack> substancesToSpread = spreadSubstancesByVolume(fluidBE.getMixture().getSubstances(), spreadVolume,
-                    fluidBE.getVolume());
+            List<SubstanceStack> substancesToSpread = SubstanceUtil.spreadSubstancesByVolume(
+                    fluidBE.getMixture().getSubstances(),
+                    fluidBE.getVolume(),
+                    spreadVolume
+            );
             if (substancesToSpread.isEmpty()) return;
 
             SubstanceFluidBlockEntity target = spreadTo(level, abovePos, substancesToSpread);
@@ -210,23 +218,6 @@ public class SubstanceFluid extends Fluid {
                 fluidBE.getMixture().removeSubstance(spreadStack, spreadStack.getAmount());
             }
         }
-    }
-
-    private List<SubstanceStack> spreadSubstancesByVolume(List<SubstanceStack> substances, int transferVolume, int totalVolume) {
-        List<SubstanceStack> spreadStacks = new ArrayList<>();
-        float ratio = (float) transferVolume / totalVolume;
-
-        for (SubstanceStack stack : substances) {
-            int amount = (int) (stack.getAmount() * ratio);
-
-            if (amount > 0) {
-                SubstanceStack spreadStack = stack.copy();
-                spreadStack.setAmount(amount);
-                spreadStacks.add(spreadStack);
-            }
-        }
-
-        return spreadStacks;
     }
 
     public boolean canSpreadTo(Level level, BlockPos pos) {
@@ -384,7 +375,7 @@ public class SubstanceFluid extends Fluid {
         int absorb = Math.min(stainHeadroom, (int) (fluidVolume * contactFactor));
         if (absorb <= 0) return;
 
-        List<SubstanceStack> absorbed = spreadSubstancesByVolume(fluidBE.getMixture().getSubstances(), absorb, fluidVolume);
+        List<SubstanceStack> absorbed = SubstanceUtil.spreadSubstancesByVolume(fluidBE.getMixture().getSubstances(), fluidVolume, absorb);
         if (!absorbed.isEmpty()) {
             fluidBE.getMixture().removeSubstances(absorbed);
             stains.transferSubstances(absorbed);
@@ -438,6 +429,64 @@ public class SubstanceFluid extends Fluid {
         Vec3 flowDirection = new Vec3(flowX, 0.0, flowZ);
 
         return flowDirection.normalize();
+    }
+
+    private boolean tryFreeze(ServerLevel level, BlockPos pos, SubstanceFluidBlockEntity fluidBE) {
+        SubstanceMixture mixture = fluidBE.getMixture();
+        int volume = fluidBE.getVolume();
+
+        // TODO: Alternatively, we could first verify if there is a solid substance in the mixture, perhaps keeping a list of solid substances
+        if (mixture.getSolidFraction() < FREEZE_FRACTION) return false;
+
+        List<SubstanceStack> solidSubstances = new ArrayList<>();
+        List<SubstanceStack> nonSolidSubstances = new ArrayList<>();
+        float temperature = mixture.getTemperature();
+
+        for (SubstanceStack stack : mixture.getSubstances()) {
+            Substance substance = stack.getSubstance();
+            if (substance.getState() == SubstanceState.SOLID) {
+                solidSubstances.add(stack);
+            } else {
+                nonSolidSubstances.add(stack);
+            }
+        }
+
+        int blockLevel = getBlockLevel(volume);
+
+        if (canSpreadTo(level, pos.above()) && blockLevel == 20) {
+            SubstanceUtil.spill(level, pos.above(), nonSolidSubstances);
+        } else {
+            List<BlockPos> spreadPositions = new ArrayList<>(4);
+            for (Direction direction : Direction.Plane.HORIZONTAL) {
+                BlockPos neighborPos = pos.relative(direction);
+                if (canSpreadTo(level, neighborPos)) {
+                    spreadPositions.add(neighborPos);
+                }
+            }
+
+            if (!spreadPositions.isEmpty()) {
+                int spreadCount = spreadPositions.size();
+                List<SubstanceStack> spreadStacks = SubstanceUtil.splitSubstances(nonSolidSubstances, spreadCount, 0);
+                for (BlockPos spreadPos : spreadPositions) {
+                    SubstanceUtil.spill(level, spreadPos, spreadStacks);
+                }
+            } else {
+                solidSubstances.addAll(nonSolidSubstances);
+            }
+        }
+
+        fluidBE.beginConversion();
+        level.setBlock(pos, FROZEN_SUBSTANCE.get().defaultBlockState()
+                .setValue(SolidSubstanceBlock.LEVEL, blockLevel), Block.UPDATE_ALL);
+
+        if (level.getBlockEntity(pos) instanceof SolidSubstanceBlockEntity solid) {
+            solid.getMixture().setSubstances(solidSubstances);
+            solid.getMixture().setTemperature(temperature);
+            solid.setChanged();
+            level.sendBlockUpdated(pos, solid.getBlockState(), solid.getBlockState(), Block.UPDATE_CLIENTS);
+        }
+
+        return true;
     }
 
     private boolean isEmpty(Level level, BlockPos pos) {

@@ -93,7 +93,7 @@ public class AtmosInstance {
      */
     public float getPressure() {
         if (blocks.isEmpty()) return 0;
-        return SubstanceUtil.getTotalAmount(gases) * GAS_CONSTANT * temperature / (blocks.size() * 1000);
+        return SubstanceUtil.getTotalVolume(gases) * GAS_CONSTANT * temperature / (blocks.size() * 1000);
     }
 
     public UUID getUUID() {

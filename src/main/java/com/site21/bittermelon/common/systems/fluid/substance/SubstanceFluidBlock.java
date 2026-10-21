@@ -150,10 +150,12 @@ public class SubstanceFluidBlock extends Block implements LiquidBlockContainer, 
                     0.0
             );
 
+            float fluidHeight = level.getFluidState(pos).getHeight(level, pos);
+
             level.addAlwaysVisibleParticle(
                     BitterParticles.BUBBLE.get(),
                     x + random.nextFloat(),
-                    y + random.nextFloat() * level.getFluidState(pos).getHeight(level, pos),
+                    y + random.nextFloat() * fluidHeight,
                     z + random.nextFloat(),
                     0.0,
                     0.04,
@@ -164,7 +166,7 @@ public class SubstanceFluidBlock extends Block implements LiquidBlockContainer, 
                 level.addParticle(
                         new DustParticleOptions(fluidBE.getColor(), 2.0f),
                         pos.getX() + 0.5,
-                        pos.getY() + 0.5 + level.getFluidState(pos).getHeight(level, pos),
+                        pos.getY() + 0.5 + fluidHeight,
                         pos.getZ() + 0.5,
                         10,
                         0.5,
