@@ -10,7 +10,7 @@ import java.util.Optional;
 public class BitterModelTemplates {
     public static final TextureSlot CUSHION = TextureSlot.create("cushion");
     public static final TextureSlot FRAME = TextureSlot.create("frame");
-    public static final ModelTemplate[] LEVELS = new ModelTemplate[19];
+    public static final ModelTemplate[] LEVELS = new ModelTemplate[20];
 
     public static final ModelTemplate SLIDING_DOOR_BOTTOM_LEFT = new ModelTemplate(
             Optional.of(Identifier.fromNamespaceAndPath(Bittermelon.MOD_ID, "block/sliding_door_bottom_left")),
@@ -223,7 +223,7 @@ public class BitterModelTemplates {
     );
 
     static {
-        for (int n = 0; n < 19; n++) {
+        for (int n = 0; n < 20; n++) {
             int level = n + 1;
             LEVELS[n] = new ModelTemplate(
                     Optional.of(Bittermelon.identifier("block/level_" + level)),

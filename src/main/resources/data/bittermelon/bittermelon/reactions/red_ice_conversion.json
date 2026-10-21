@@ -5,7 +5,9 @@
        "order": 0,
       "nature_requirements": {},
       "substance_requirements": [
-        "bittermelon:red_ice"
+        "bittermelon:red_ice",
+        "bittermelon:red_liquid",
+        "bittermelon:red_steam"
       ]
     },
     {

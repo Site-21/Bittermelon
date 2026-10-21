@@ -15,7 +15,7 @@ public class SolidSubstanceTintSource implements BlockTintSource {
     @Override
     public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof SolidSubstanceBlockEntity be) {
-            return be.getMixture().getColor();
+            return be.getColor();
         }
 
         return color(state);

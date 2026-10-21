@@ -117,8 +117,8 @@ public class BitterModelProvider extends ModelProvider {
         createEyeballBlister(blockModels, BitterBlocks.EYEBALL_BLISTER.get());
         createWoodenSeat(blockModels, BitterBlocks.BLACK_WOODEN_SEAT.get(), "black");
         createDrum(blockModels, BitterBlocks.METAL_DRUM.get());
-        layered(blockModels, BitterBlocks.RED_ICE.get());
-        layered(blockModels, BitterBlocks.FROZEN_SUBSTANCE.get());
+        layeredTinted(blockModels, BitterBlocks.RED_ICE.get());
+        layeredTinted(blockModels, BitterBlocks.FROZEN_SUBSTANCE.get());
 
         // SubstanceFluid Containers
         itemModels.generateFlatItem(BEER_BOTTLE.get(), ModelTemplates.FLAT_ITEM);
@@ -874,15 +874,13 @@ public class BitterModelProvider extends ModelProvider {
         );
     }
 
-    private void layered(BlockModelGenerators blockModels, Block block) {
+    private void layeredTinted(BlockModelGenerators blockModels, Block block) {
         TextureMapping mapping = TextureMapping.cube(TextureMapping.getBlockTexture(block));
 
         Identifier[] models = new Identifier[20];
-        for (int n = 0; n < 19; n++) {
+        for (int n = 0; n < 20; n++) {
             models[n] = BitterModelTemplates.LEVELS[n].create(block, mapping, blockModels.modelOutput);
         }
-
-        models[19] = ModelTemplates.CUBE_ALL.create(block, mapping, blockModels.modelOutput);
 
         blockModels.blockStateOutput.accept(
                 MultiVariantGenerator.dispatch(block).with(

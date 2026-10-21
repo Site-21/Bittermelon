@@ -436,7 +436,7 @@ public class SubstanceFluid extends Fluid {
         int volume = fluidBE.getVolume();
 
         // TODO: Alternatively, we could first verify if there is a solid substance in the mixture, perhaps keeping a list of solid substances
-        if (mixture.getSolidFraction() < FREEZE_FRACTION) return false;
+        if (mixture.getSolidFraction() < 1.0) return false;
 
         List<SubstanceStack> solidSubstances = new ArrayList<>();
         List<SubstanceStack> nonSolidSubstances = new ArrayList<>();
@@ -456,26 +456,28 @@ public class SubstanceFluid extends Fluid {
         if (canSpreadTo(level, pos.above()) && blockLevel == 20) {
             SubstanceUtil.spill(level, pos.above(), nonSolidSubstances);
         } else {
-            List<BlockPos> spreadPositions = new ArrayList<>(4);
-            for (Direction direction : Direction.Plane.HORIZONTAL) {
-                BlockPos neighborPos = pos.relative(direction);
-                if (canSpreadTo(level, neighborPos)) {
-                    spreadPositions.add(neighborPos);
-                }
-            }
-
-            if (!spreadPositions.isEmpty()) {
-                int spreadCount = spreadPositions.size();
-                List<SubstanceStack> spreadStacks = SubstanceUtil.splitSubstances(nonSolidSubstances, spreadCount, 0);
-                for (BlockPos spreadPos : spreadPositions) {
-                    SubstanceUtil.spill(level, spreadPos, spreadStacks);
-                }
-            } else {
-                solidSubstances.addAll(nonSolidSubstances);
-            }
+            solidSubstances.addAll(nonSolidSubstances);
+//            List<BlockPos> spreadPositions = new ArrayList<>(4);
+//            for (Direction direction : Direction.Plane.HORIZONTAL) {
+//                BlockPos neighborPos = pos.relative(direction);
+//                if (canSpreadTo(level, neighborPos)) {
+//                    spreadPositions.add(neighborPos);
+//                }
+//            }
+//
+//            if (!spreadPositions.isEmpty()) {
+//                int spreadCount = spreadPositions.size();
+//                List<SubstanceStack> spreadStacks = SubstanceUtil.splitSubstances(nonSolidSubstances, spreadCount, 0);
+//                for (BlockPos spreadPos : spreadPositions) {
+//                    SubstanceUtil.spill(level, spreadPos, spreadStacks);
+//                }
+//            } else {
+//                solidSubstances.addAll(nonSolidSubstances);
+//            }
         }
 
         fluidBE.beginConversion();
+        // TODO: Choose different block based on substance
         level.setBlock(pos, FROZEN_SUBSTANCE.get().defaultBlockState()
                 .setValue(SolidSubstanceBlock.LEVEL, blockLevel), Block.UPDATE_ALL);
 

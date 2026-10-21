@@ -44,7 +44,7 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
     public SubstanceFluidBlockEntity(BlockPos pos, BlockState blockState) {
         super(SUBSTANCE_FLUID_BLOCK_ENTITY.get(), pos, blockState);
         mixture = new SubstanceMixture(this::onMixtureChanged);
-        mixture.setTemperature(50);
+        mixture.setTemperature(298.15f);
     }
 
     public void onMixtureChanged() {

@@ -12,6 +12,15 @@ public class Reactions {
 
         twoWay(reactions, Substances.ICE.get(), Substances.WATER.get(), 273.15f, 6f, 1);
         twoWay(reactions, Substances.WATER.get(), Substances.STEAM.get(), 373.15f, 40f, 1);
+        twoWay(reactions, Substances.FROZEN_BLOOD.get(), Substances.BLOOD.get(), 273.15f, 6f, 1);
+        twoWay(reactions, Substances.FROZEN_URINE.get(), Substances.URINE.get(), 273.15f, 6f, 1);
+        twoWay(reactions, Substances.FROZEN_VOMIT.get(), Substances.VOMIT.get(), 273.15f, 6f, 1);
+        twoWay(reactions, Substances.FROZEN_KOOL_AID.get(), Substances.KOOL_AID.get(), 273.15f, 6f, 1);
+        twoWay(reactions, Substances.FROZEN_APPLE_JUICE.get(), Substances.APPLE_JUICE.get(), 273.15f, 6f, 1);
+        twoWay(reactions, Substances.FROZEN_BRINE_SHRIMP.get(), Substances.BRINE_SHRIMP.get(), 273.15f, 6f, 1);
+        twoWay(reactions, Substances.FROZEN_FERTILE_LIQUID.get(), Substances.FERTILE_LIQUID.get(), 273.15f, 6f, 1);
+        twoWay(reactions, Substances.RED_STEAM.get(), Substances.RED_LIQUID.get(), 173.15f, 40f, 1);
+        twoWay(reactions, Substances.RED_LIQUID.get(), Substances.RED_ICE.get(), 273.15f, 6f, 1);
     }
 
     private static void twoWay(ReactionManager reactions, Substance low, Substance high, float point, float latentHeat, int rate) {

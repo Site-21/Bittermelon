@@ -59,6 +59,15 @@ public class Substances {
                     .nature(Nature.WATER_BASED, 0.7f)
     ));
 
+    public static final DeferredHolder<Substance, Substance> FROZEN_BLOOD = SUBSTANCES.register("frozen_blood", () -> new Substance(
+            "Frozen Blood",
+            new Substance.Properties()
+                    .state(SubstanceState.SOLID)
+                    .color(0xFFB52222)
+                    .density(0.917f)
+                    .nature(Nature.WATER_BASED, 0.7f)
+    ));
+
     public static final DeferredHolder<Substance, Substance> URINE = SUBSTANCES.register("urine", () -> new Substance(
             "Urine",
             new Substance.Properties()
@@ -67,9 +76,27 @@ public class Substances {
                     .nature(Nature.WATER_BASED, 0.8f)
     ));
 
+    public static final DeferredHolder<Substance, Substance> FROZEN_URINE = SUBSTANCES.register("frozen_urine", () -> new Substance(
+            "Frozen Urine",
+            new Substance.Properties()
+                    .state(SubstanceState.SOLID)
+                    .color(0xFFFFDC65)
+                    .nature(Nature.STRONG_ACID, 0.8f)
+                    .nature(Nature.WATER_BASED, 0.8f)
+    ));
+
     public static final DeferredHolder<Substance, Substance> VOMIT = SUBSTANCES.register("vomit", () -> new Substance(
             "Vomit",
             new Substance.Properties()
+                    .color(0xFFCFBD8B)
+                    .nature(Nature.BASE, 0.5f)
+                    .nature(Nature.WATER_BASED, 0.6f)
+    ));
+
+    public static final DeferredHolder<Substance, Substance> FROZEN_VOMIT = SUBSTANCES.register("frozen_vomit", () -> new Substance(
+            "Frozen Vomit",
+            new Substance.Properties()
+                    .state(SubstanceState.SOLID)
                     .color(0xFFCFBD8B)
                     .nature(Nature.BASE, 0.5f)
                     .nature(Nature.WATER_BASED, 0.6f)
@@ -123,11 +150,27 @@ public class Substances {
                     .nature(Nature.WATER_BASED, 0.9f)
     ));
 
+    public static final DeferredHolder<Substance, Substance> FROZEN_KOOL_AID = SUBSTANCES.register("frozen_kool_aid", () -> new Substance(
+            "Frozen Kool-Aid",
+            new Substance.Properties()
+                    .state(SubstanceState.SOLID)
+                    .color(0xFFB52222)
+                    .nature(Nature.WATER_BASED, 0.9f)
+    ));
+
     public static final DeferredHolder<Substance, Substance> APPLE_JUICE = SUBSTANCES.register("apple_juice", () -> new Substance(
             "Apple Juice",
             new Substance.Properties()
                     .color(0xFFFFDC65)
                     .flavor("sweet")
+                    .nature(Nature.WATER_BASED, 0.8f)
+    ));
+
+    public static final DeferredHolder<Substance, Substance> FROZEN_APPLE_JUICE = SUBSTANCES.register("frozen_apple_juice", () -> new Substance(
+            "Frozen Apple Juice",
+            new Substance.Properties()
+                    .state(SubstanceState.SOLID)
+                    .color(0xFFFFDC65)
                     .nature(Nature.WATER_BASED, 0.8f)
     ));
 
@@ -152,15 +195,39 @@ public class Substances {
                     .nature(Nature.STRONG_ACID, 0.7f)
     ));
 
+    public static final DeferredHolder<Substance, Substance> RED_LIQUID = SUBSTANCES.register("red_liquid", () -> new Substance(
+            "Red Liquid",
+            new Substance.Properties()
+                    .color(0xFFB52222)
+    ));
+
     public static final DeferredHolder<Substance, Substance> RED_ICE = SUBSTANCES.register("red_ice", () -> new Substance(
             "Red Ice",
             new Substance.Properties()
+                    .state(SubstanceState.SOLID)
+                    .density(0.917f)
+                    .color(0xFFB52222)
+    ));
+
+    public static final DeferredHolder<Substance, Substance> RED_STEAM = SUBSTANCES.register("red_steam", () -> new Substance(
+            "Red Steam",
+            new Substance.Properties()
+                    .state(SubstanceState.GAS)
+                    .density(0.597f)
                     .color(0xFFB52222)
     ));
 
     public static final DeferredHolder<Substance, Substance> BRINE_SHRIMP = SUBSTANCES.register("brine_shrimp", () -> new Substance(
             "Brine Shrimp",
             new Substance.Properties()
+                    .color(0xFFFFDC65)
+                    .nature(Nature.WATER_BASED, 0.9f)
+    ));
+
+    public static final DeferredHolder<Substance, Substance> FROZEN_BRINE_SHRIMP = SUBSTANCES.register("frozen_brine_shrimp", () -> new Substance(
+            "Frozen Brine Shrimp",
+            new Substance.Properties()
+                    .state(SubstanceState.SOLID)
                     .color(0xFFFFDC65)
                     .nature(Nature.WATER_BASED, 0.9f)
     ));
@@ -172,6 +239,14 @@ public class Substances {
                     .nature(Nature.WATER_BASED, 0.9f)
     ));
 
+    public static final DeferredHolder<Substance, Substance> FROZEN_FERTILE_LIQUID = SUBSTANCES.register("frozen_fertile_liquid", () -> new Substance(
+            "Frozen Fertile Liquid",
+            new Substance.Properties()
+                    .state(SubstanceState.SOLID)
+                    .color(0xFFB1A5C2)
+                    .nature(Nature.WATER_BASED, 0.9f)
+    ));
+
     public static final DeferredHolder<Substance, Substance> EYEBALL_FLUID = SUBSTANCES.register("eyeball_fluid", () -> new Substance(
             "Eyeball Fluid",
             new Substance.Properties()
@@ -179,4 +254,3 @@ public class Substances {
                     .contactEffects(new MobEffectInstance(BitterMobEffects.EYEBALL_GROWTH, MobEffectInstance.INFINITE_DURATION, 0, true, false))
     ));
 }
-
