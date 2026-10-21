@@ -3,16 +3,14 @@ package com.site21.bittermelon.common.systems.fluid.substance;
 import com.site21.bittermelon.common.content.blocks.properties.BitterStateProperties;
 import com.site21.bittermelon.init.neoforge.BitterParticles;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.*;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.LiquidBlockContainer;
-import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -161,6 +159,18 @@ public class SubstanceFluidBlock extends Block implements LiquidBlockContainer, 
                     0.04,
                     0.0
             );
+
+            if (level.getBlockEntity(pos) instanceof SubstanceFluidBlockEntity fluidBE && level.getBlockState(pos.above()).isAir()) {
+                level.addParticle(
+                        new DustParticleOptions(fluidBE.getColor(), 2.0f),
+                        pos.getX() + 0.5,
+                        pos.getY() + 0.5 + level.getFluidState(pos).getHeight(level, pos),
+                        pos.getZ() + 0.5,
+                        10,
+                        0.5,
+                        1.0
+                );
+            }
 
             // TODO: Better sound
             level.playLocalSound(
