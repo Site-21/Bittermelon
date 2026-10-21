@@ -485,7 +485,6 @@ public class SubstanceFluid extends Fluid {
             solid.getMixture().setSubstances(solidSubstances);
             solid.getMixture().setTemperature(temperature);
             solid.setChanged();
-            level.sendBlockUpdated(pos, solid.getBlockState(), solid.getBlockState(), Block.UPDATE_CLIENTS);
         }
 
         return true;

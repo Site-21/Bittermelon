@@ -41,7 +41,7 @@ public class Substances {
             "Steam",
             new Substance.Properties()
                     .state(SubstanceState.GAS)
-                    .color(0x50AAD5DB)
+                    .color(0x50D2DBDC)
                     .density(0.597f)
                     .nature(Nature.WATER_BASED, 1.0f)
     ));

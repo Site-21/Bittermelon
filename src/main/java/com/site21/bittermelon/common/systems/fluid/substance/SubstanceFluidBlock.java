@@ -163,11 +163,12 @@ public class SubstanceFluidBlock extends Block implements LiquidBlockContainer, 
             );
 
             if (level.getBlockEntity(pos) instanceof SubstanceFluidBlockEntity fluidBE && level.getBlockState(pos.above()).isAir()) {
+                // TODO: Should use gas color instead of fluid color
                 level.addParticle(
                         new DustParticleOptions(fluidBE.getColor(), 2.0f),
-                        pos.getX() + 0.5,
+                        pos.getX() + random.nextFloat(),
                         pos.getY() + 0.5 + fluidHeight,
-                        pos.getZ() + 0.5,
+                        pos.getZ() + random.nextFloat(),
                         10,
                         0.5,
                         1.0
