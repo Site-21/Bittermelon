@@ -196,7 +196,6 @@ public class BitterModelProvider extends ModelProvider {
         itemModels.generateFlatItem(GLASS_SHARD.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(GAS_CYLINDER.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(INTERCOM_PHONE.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(NETWORK_CABLE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(WIRE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(HELLO_KITTY_CELLPHONE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(BASEBALL.get(), ModelTemplates.FLAT_ITEM);
@@ -206,7 +205,6 @@ public class BitterModelProvider extends ModelProvider {
         itemModels.generateFlatItem(HANDHELD_SYSTEM_INTERFACE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(SUTURE.get(), ModelTemplates.FLAT_ITEM);
         generate3D2DItem(itemModels, REPAIR_TOOL.get());
-        itemModels.generateFlatItem(DEBUG_WIRE.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(METAL_ROD.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
         itemModels.generateFlatItem(PINK_PLASTIC_SCRAP.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(BitterBlocks.SCP_330.get().asItem(), ModelTemplates.FLAT_ITEM);

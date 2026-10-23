@@ -405,8 +405,6 @@ public class BitterItems {
 
     public static final DeferredItem<IntercomPhoneItem> INTERCOM_PHONE = ITEMS.registerItem("intercom_phone", IntercomPhoneItem::new);
 
-    public static final DeferredItem<Item> NETWORK_CABLE = ITEMS.registerSimpleItem("network_cable");
-
     public static final DeferredItem<WireItem> WIRE = ITEMS.registerItem("wire", WireItem::new);
 
     public static final DeferredItem<Item> COLON = ITEMS.registerSimpleItem(
@@ -563,12 +561,6 @@ public class BitterItems {
 
     public static final DeferredItem<RepairToolItem> REPAIR_TOOL = ITEMS.register("repair_tool", registryName ->
             new RepairToolItem(new Item.Properties()
-                    .setId(ResourceKey.create(Registries.ITEM, registryName))
-                    .stacksTo(1)
-            ));
-
-    public static final DeferredItem<DebugWire> DEBUG_WIRE = ITEMS.register("debug_wire", registryName ->
-            new DebugWire(new Item.Properties()
                     .setId(ResourceKey.create(Registries.ITEM, registryName))
                     .stacksTo(1)
             ));

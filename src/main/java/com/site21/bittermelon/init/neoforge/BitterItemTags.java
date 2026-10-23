@@ -28,4 +28,8 @@ public class BitterItemTags {
             Identifier.fromNamespaceAndPath(Bittermelon.MOD_ID, "wire_cutter")
     );
 
+    public static final TagKey<Item> INVENTORY_EXCLUDED = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath(Bittermelon.MOD_ID, "inventory_excluded")
+    );
 }

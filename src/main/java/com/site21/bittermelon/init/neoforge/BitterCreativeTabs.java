@@ -26,10 +26,10 @@ public class BitterCreativeTabs {
             CreativeModeTab.builder()
                     .title(Component.literal("Bittermelon"))
                     .icon(() -> new ItemStack(BitterItems.BITTERMELON.get()))
-                    .displayItems((parameters, output) -> {
+                    .displayItems((_, output) -> {
                         for (DeferredHolder<Item, ? extends Item> item : BitterItems.ITEMS.getEntries()) {
-                            if (item.equals(CHALK) || item.equals(HIGHLIGHTER)) continue;
-                            if (item.is(BitterItemTags.SCP))  continue;
+                            if (item.is(BitterItemTags.INVENTORY_EXCLUDED)) continue;
+                            if (item.is(BitterItemTags.SCP)) continue;
                             output.accept(item.get());
                         }
 
