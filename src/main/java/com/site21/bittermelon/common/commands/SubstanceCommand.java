@@ -153,6 +153,9 @@ public class SubstanceCommand {
 
         source.sendSuccess(() -> Component.literal(fluidBlockEntity.getMixture().getContentsDescription()), true);
         source.sendSuccess(() -> Component.literal("Volume: " + fluidBlockEntity.getVolume()), true);
+        float temperature = fluidBlockEntity.getTemperature();
+        float celsius = temperature - 273.15f;
+        source.sendSuccess(() -> Component.literal("Temperature: " + temperature + "K, " + celsius + "°C"), true);
         return 1;
     }
 

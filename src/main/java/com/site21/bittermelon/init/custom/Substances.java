@@ -34,6 +34,7 @@ public class Substances {
                     .state(SubstanceState.SOLID)
                     .color(0x50AAD5DB)
                     .density(0.917f)
+                    .molarHeatCapacity(37.1f)
                     .nature(Nature.WATER_BASED, 1.0f)
     ));
 
@@ -43,6 +44,7 @@ public class Substances {
                     .state(SubstanceState.GAS)
                     .color(0x50D2DBDC)
                     .density(0.597f)
+                    .molarHeatCapacity(33.6f)
                     .nature(Nature.WATER_BASED, 1.0f)
     ));
 

@@ -5,6 +5,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.site21.bittermelon.common.systems.substance.SubstanceContainer;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 
 import java.util.HashMap;
@@ -17,10 +18,13 @@ public record Reaction(
         float minTemperature,
         float maxTemperature,
         float temperatureChange,
+        float rate,
         List<ReactionEffect> effects,
         List<ReactionEffect> finishEffects
 ) {
     public static final Codec<Reaction> CODEC;
+    private static final float KILOJOULES_TO_JOULES = 1000;
+    private static final int UNBOUNDED_EXTENT = 100;
 
     public boolean canOccur(SubstanceContainer substanceContainer, float temperature, Level level, BlockPos pos) {
         if (temperature < minTemperature || temperature >= maxTemperature) return false;
@@ -45,14 +49,30 @@ public record Reaction(
         return true;
     }
 
-    public int getReactionRate(SubstanceContainer substanceContainer, Level level, BlockPos pos) {
-        return 100;
+    public int getReactionRate(SubstanceContainer substanceContainer, Level level, BlockPos pos, int maxExtent) {
+        if (maxExtent == Integer.MAX_VALUE) return UNBOUNDED_EXTENT;
+        return Math.min(maxExtent, Mth.ceil(maxExtent * rate));
+    }
+
+    private int limitByHeat(int extent, float capacity, float temperature) {
+        if (temperatureChange == 0 || capacity <= 0) return extent;
+
+        float headroom;
+        if (temperatureChange > 0) {
+            if (maxTemperature == Float.MAX_VALUE) return extent;
+            headroom = maxTemperature - temperature;
+        } else {
+            headroom = temperature - minTemperature;
+        }
+
+        float affordable = headroom * capacity / (Math.abs(temperatureChange) * KILOJOULES_TO_JOULES);
+        return Math.min(extent, Mth.floor(affordable));
     }
 
     public boolean react(SubstanceContainer substanceContainer, Level level, BlockPos pos) {
         if (!canOccur(substanceContainer, substanceContainer.getTemperature(), level, pos)) return false;
         Map<SubstanceStack, Reagent> reactants = new HashMap<>();
-        int scaledAmount = getReactionRate(substanceContainer, level, pos);
+        int maxExtent = Integer.MAX_VALUE;
 
         for (Reagent reagent : reagents) {
             boolean found = false;
@@ -60,7 +80,7 @@ public record Reaction(
                 if (reagent.matches(stack)) {
                     reactants.put(stack, reagent);
                     if (reagent.proportion() > 0) {
-                        scaledAmount = Math.min(scaledAmount, stack.getAmount() / reagent.proportion());
+                        maxExtent = Math.min(maxExtent, stack.getAmount() / reagent.proportion());
                     }
                     found = true;
                     break;
@@ -70,6 +90,12 @@ public record Reaction(
             if (!found) return false;
         }
 
+        float capacity = substanceContainer.getHeatCapacity();
+        int scaledAmount = limitByHeat(
+                getReactionRate(substanceContainer, level, pos, maxExtent),
+                capacity,
+                substanceContainer.getTemperature());
+
         if (scaledAmount <= 0) return false;
 
         for (var entry : reactants.entrySet()) {
@@ -78,6 +104,10 @@ public record Reaction(
 
         for (ReactionEffect effect : effects) {
             effect.apply(substanceContainer, level, pos, scaledAmount);
+        }
+
+        if (temperatureChange != 0 && capacity > 0) {
+            substanceContainer.modifyTemperatureNoUpdate(temperatureChange * KILOJOULES_TO_JOULES * scaledAmount / capacity);
         }
 
         substanceContainer.refresh();
@@ -120,6 +150,9 @@ public record Reaction(
                 Codec.FLOAT
                         .optionalFieldOf("temperature_change", 0.0f)
                         .forGetter(Reaction::temperatureChange),
+                Codec.FLOAT
+                        .optionalFieldOf("rate", 1.0f)
+                        .forGetter(Reaction::rate),
                 ReactionEffect.CODEC.listOf()
                         .optionalFieldOf("effects", List.of())
                         .forGetter(Reaction::effects),

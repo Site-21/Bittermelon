@@ -119,6 +119,14 @@ public class Substance {
         return properties.molarMass;
     }
 
+    /**
+     * Gets the molar heat capacity of the substance in J/(mol*K).
+     * @return Molar heat capacity in J/(mol*K).
+     */
+    public float getMolarHeatCapacity() {
+        return properties.molarHeatCapacity;
+    }
+
     public @NotNull Holder<Substance> builtInRegistryHolder() {
         return SUBSTANCE_REGISTRY.get(SUBSTANCE_REGISTRY.getId(this)).orElseThrow();
     }
@@ -127,6 +135,7 @@ public class Substance {
         SubstanceState state = SubstanceState.LIQUID;
         EnumMap<Nature, Float> nature = new EnumMap<>(Nature.class);
         float molarMass = 18.02f; // g/mol
+        float molarHeatCapacity = 75.3f; // J/(mol·K)
         float density = 1; // g/cm^3
         float slipperiness = 0.1f;
         int viscosity = 1000; //
@@ -151,6 +160,11 @@ public class Substance {
 
         public Properties molarMass(float molarMass) {
             this.molarMass = molarMass;
+            return this;
+        }
+
+        public Properties molarHeatCapacity(float molarHeatCapacity) {
+            this.molarHeatCapacity = molarHeatCapacity;
             return this;
         }
 

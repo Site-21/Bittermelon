@@ -20,6 +20,12 @@ public interface SubstanceContainer {
 
     float getTemperature();
 
+    void setTemperature(float temperature);
+
+    void modifyTemperature(float delta);
+
+    void modifyTemperatureNoUpdate(float delta);
+
     Collection<SubstanceStack> getSubstances();
 
     default EnumSet<Nature> getNatures() {
@@ -46,5 +52,17 @@ public interface SubstanceContainer {
 
         refresh();
         return transferred;
+    }
+
+    /**
+     * Calculates the total heat capacity of the substances in the container.
+     * @return The total heat capacity in J/K.
+     */
+    default float getHeatCapacity() {
+        float capacity = 0;
+        for (SubstanceStack stack : getSubstances()) {
+            capacity += stack.getAmount() * stack.getSubstance().getMolarHeatCapacity();
+        }
+        return capacity;
     }
 }

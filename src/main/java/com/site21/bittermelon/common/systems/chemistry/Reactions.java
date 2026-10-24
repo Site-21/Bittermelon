@@ -7,28 +7,31 @@ import com.site21.bittermelon.init.custom.Substances;
 import java.util.List;
 
 public class Reactions {
+    private static final float FUSION_RATE = 0.01f;
+    private static final float VAPORIZATION_RATE = 0.002f;
+
     public static void register() {
         ReactionManager reactions = ReactionManager.getInstance();
 
-        twoWay(reactions, Substances.ICE.get(), Substances.WATER.get(), 273.15f, 6f, 1);
-        twoWay(reactions, Substances.WATER.get(), Substances.STEAM.get(), 373.15f, 40f, 1);
-        twoWay(reactions, Substances.FROZEN_BLOOD.get(), Substances.BLOOD.get(), 273.15f, 6f, 1);
-        twoWay(reactions, Substances.FROZEN_URINE.get(), Substances.URINE.get(), 273.15f, 6f, 1);
-        twoWay(reactions, Substances.FROZEN_VOMIT.get(), Substances.VOMIT.get(), 273.15f, 6f, 1);
-        twoWay(reactions, Substances.FROZEN_KOOL_AID.get(), Substances.KOOL_AID.get(), 273.15f, 6f, 1);
-        twoWay(reactions, Substances.FROZEN_APPLE_JUICE.get(), Substances.APPLE_JUICE.get(), 273.15f, 6f, 1);
-        twoWay(reactions, Substances.FROZEN_BRINE_SHRIMP.get(), Substances.BRINE_SHRIMP.get(), 273.15f, 6f, 1);
-        twoWay(reactions, Substances.FROZEN_FERTILE_LIQUID.get(), Substances.FERTILE_LIQUID.get(), 273.15f, 6f, 1);
-        twoWay(reactions, Substances.RED_STEAM.get(), Substances.RED_LIQUID.get(), 173.15f, 40f, 1);
-        twoWay(reactions, Substances.RED_LIQUID.get(), Substances.RED_ICE.get(), 273.15f, 6f, 1);
+        twoWay(reactions, Substances.ICE.get(), Substances.WATER.get(), 273.15f, 6f, FUSION_RATE);
+        twoWay(reactions, Substances.WATER.get(), Substances.STEAM.get(), 373.15f, 40f, VAPORIZATION_RATE);
+        twoWay(reactions, Substances.FROZEN_BLOOD.get(), Substances.BLOOD.get(), 273.15f, 6f, FUSION_RATE);
+        twoWay(reactions, Substances.FROZEN_URINE.get(), Substances.URINE.get(), 273.15f, 6f, FUSION_RATE);
+        twoWay(reactions, Substances.FROZEN_VOMIT.get(), Substances.VOMIT.get(), 273.15f, 6f, FUSION_RATE);
+        twoWay(reactions, Substances.FROZEN_KOOL_AID.get(), Substances.KOOL_AID.get(), 273.15f, 6f, FUSION_RATE);
+        twoWay(reactions, Substances.FROZEN_APPLE_JUICE.get(), Substances.APPLE_JUICE.get(), 273.15f, 6f, FUSION_RATE);
+        twoWay(reactions, Substances.FROZEN_BRINE_SHRIMP.get(), Substances.BRINE_SHRIMP.get(), 273.15f, 6f, FUSION_RATE);
+        twoWay(reactions, Substances.FROZEN_FERTILE_LIQUID.get(), Substances.FERTILE_LIQUID.get(), 273.15f, 6f, FUSION_RATE);
+        twoWay(reactions, Substances.RED_STEAM.get(), Substances.RED_LIQUID.get(), 173.15f, 40f, VAPORIZATION_RATE);
+        twoWay(reactions, Substances.RED_LIQUID.get(), Substances.RED_ICE.get(), 273.15f, 6f, FUSION_RATE);
     }
 
-    private static void twoWay(ReactionManager reactions, Substance low, Substance high, float point, float latentHeat, int rate) {
+    private static void twoWay(ReactionManager reactions, Substance low, Substance high, float point, float latentHeat, float rate) {
         reactions.register(convert(low, high, point, Float.POSITIVE_INFINITY, -latentHeat, rate));
         reactions.register(convert(high, low, 0f, point, latentHeat, rate));
     }
 
-    private static Reaction convert(Substance from, Substance to, float minTemp, float maxTemp, float tempChange, int rate) {
+    private static Reaction convert(Substance from, Substance to, float minTemp, float maxTemp, float tempChange, float rate) {
         Reagent reagent = Reagent.builder()
                 .addSubstanceRequirement(from)
                 .proportion(1)
@@ -40,6 +43,7 @@ public class Reactions {
                 minTemp,
                 maxTemp,
                 tempChange,
+                rate,
                 List.of(new SynthesisEffect().addProduct(to.builtInRegistryHolder(), 1)),
                 List.of()
         );

@@ -1,0 +1,35 @@
+{
+  "reagents": [
+    {
+      "proportion": 0,
+      "order": 0,
+      "nature_requirements": {},
+      "substance_requirements": [
+        "bittermelon:red_ice",
+        "bittermelon:red_liquid",
+        "bittermelon:red_steam"
+      ]
+    },
+    {
+      "proportion": 1,
+      "order": 0,
+      "nature_requirements": {
+        "water_based": 0.0
+      },
+      "substance_requirements": []
+    }
+  ],
+  "conditions": [],
+  "max_temperature": 173.15,
+  "temperature_change": 2,
+  "rate": 0.005,
+  "effects": [
+    {
+      "type": "bittermelon:synthesis",
+      "products": {
+        "bittermelon:red_steam": 1
+      }
+    }
+  ],
+  "finish_effects": []
+}

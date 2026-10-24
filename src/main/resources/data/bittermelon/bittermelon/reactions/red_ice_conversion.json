@@ -2,7 +2,7 @@
   "reagents": [
     {
       "proportion": 0,
-       "order": 0,
+      "order": 0,
       "nature_requirements": {},
       "substance_requirements": [
         "bittermelon:red_ice",
@@ -20,8 +20,9 @@
     }
   ],
   "conditions": [],
-  "min_temperature": -2147483648,
-  "temperature_change": 0,
+  "min_temperature": 273.15,
+  "temperature_change": -2,
+  "rate": 0.01,
   "effects": [
     {
       "type": "bittermelon:synthesis",
@@ -32,4 +33,3 @@
   ],
   "finish_effects": []
 }
-

@@ -203,12 +203,24 @@ public class SubstanceMixture implements SubstanceContainer {
     }
 
     public void setTemperature(float temperature) {
-        this.temperature = temperature;
+        if (this.temperature == temperature) return;
+        setTemperatureNoUpdate(temperature);
         onChanged.run();
+    }
+
+    public void setTemperatureNoUpdate(float temperature) {
+        if (this.temperature == temperature) return;
+        this.temperature = temperature;
+        markReactionsDirty();
     }
 
     public void modifyTemperature(float delta) {
         setTemperature(Math.max(0, temperature + delta));
+    }
+
+    @Override
+    public void modifyTemperatureNoUpdate(float delta) {
+        setTemperatureNoUpdate(Math.max(0, temperature + delta));
     }
 
     public int getVolume() {
