@@ -9,6 +9,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +38,9 @@ public record ThrowCarriedEntity(UUID uuid, UUID carriedId) implements CustomPac
         Entity carriedEntity = CarryHandler.getCarried(player);
         if (carriedEntity == null) return;
 
+        Vec3 heldPos = carriedEntity.position();
         carriedEntity.stopRiding();
+        carriedEntity.setPos(heldPos);
         player.removeData(BitterAttachmentTypes.CARRIED_PASSENGER);
 
         EntityDimensions entityDimensions = carriedEntity.getDimensions(carriedEntity.getPose());

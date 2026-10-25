@@ -46,7 +46,7 @@ public class CarryHandler {
     public static boolean pickUpEntity(LivingEntity carrier, @NotNull LivingEntity target) {
         if (!target.isAlive()) return false;
 
-        target.startRiding(carrier, true, true);
+        if (!target.startRiding(carrier, true, true)) return false;
         carrier.setData(BitterAttachmentTypes.CARRIED_PASSENGER, target.getUUID());
         return true;
     }
@@ -87,7 +87,7 @@ public class CarryHandler {
         if (player.isWithinBlockInteractionRange(pos, -player.blockInteractionRange() / 2)) {
             carriedEntity.setPos(hitResult.getLocation());
             player.removeData(BitterAttachmentTypes.CARRIED_PASSENGER);
-        } else {
+        } else if (player.level().isClientSide()) {
             ClientPacketDistributor.sendToServer(new ThrowCarriedEntity(player.getUUID(), carriedEntity.getUUID()));
         }
 

@@ -203,7 +203,7 @@ public class CommonEvents {
     }
 
     @SubscribeEvent
-    public static void onRightClickBlock(PlayerInteractEvent.@NotNull RightClickBlock event) {
+    public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
         if (CarryHandler.placeEntity(event.getEntity(), event.getPos(), event.getHitVec())) {
             event.setCanceled(true);
         }

@@ -4,6 +4,7 @@ import com.site21.bittermelon.common.systems.fluid.substance.SolidSubstanceBlock
 import com.site21.bittermelon.common.systems.ragdoll.RagdollEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -11,6 +12,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Optional;
@@ -18,13 +20,13 @@ import java.util.Optional;
 @Mixin(Entity.class)
 public abstract class EntityMixin {
 
-//    @Redirect(
-//            method = "startRiding(Lnet/minecraft/world/entity/Entity;Z)Z",
-//            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/EntityType;canSerialize()Z")
-//    )
-//    private boolean skipSerializeCheckWhenForced(EntityType<?> type, Entity vehicle, boolean force) {
-//        return force || type.canSerialize();
-//    }
+    @Redirect(
+            method = "startRiding(Lnet/minecraft/world/entity/Entity;ZZ)Z",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/EntityType;canSerialize()Z")
+    )
+    private boolean bittermelon$skipSerializeCheckWhenForced(EntityType<?> type, Entity entityToRide, boolean force, boolean sendEventAndTriggers) {
+        return force || type.canSerialize();
+    }
 
     @Shadow
     public Optional<BlockPos> mainSupportingBlockPos;
