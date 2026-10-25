@@ -2,6 +2,7 @@ package com.site21.bittermelon.common.systems.fluid.substance;
 
 import com.site21.bittermelon.common.content.blocks.properties.BitterStateProperties;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -35,6 +36,18 @@ public class SolidSubstanceBlock extends Block implements EntityBlock {
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPES[state.getValue(LEVEL)];
+    }
+
+    @Override
+    protected boolean skipRendering(BlockState state, BlockState neighbor, Direction direction) {
+        if (!neighbor.is(this)) return super.skipRendering(state, neighbor, direction);
+        int level = state.getValue(LEVEL);
+        int neighborLevel = neighbor.getValue(LEVEL);
+        return switch (direction) {
+            case UP -> level == 20;
+            case DOWN -> neighborLevel == 20;
+            default -> neighborLevel >= level;
+        };
     }
 
     public static VoxelShape[] createShapes() {
