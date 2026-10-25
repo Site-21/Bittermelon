@@ -46,6 +46,15 @@ public abstract class EntityMixin {
         });
     }
 
+    @Inject(method = "getOnPosLegacy", at = @At("HEAD"), cancellable = true)
+    private void bittermelon$solidSubstanceAffectsOnPos(CallbackInfoReturnable<BlockPos> cir) {
+        mainSupportingBlockPos.ifPresent(pos -> {
+            if (level().getBlockState(pos).getBlock() instanceof SolidSubstanceBlock) {
+                cir.setReturnValue(pos);
+            }
+        });
+    }
+
     @Inject(method = "getEyePosition(F)Lnet/minecraft/world/phys/Vec3;", at = @At("HEAD"), cancellable = true)
     private void bittermelon$eyeFromRagdollHead(float partialTickTime, CallbackInfoReturnable<Vec3> cir) {
         if (getVehicle() instanceof RagdollEntity ragdoll) {
