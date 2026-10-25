@@ -38,6 +38,9 @@ public abstract class InventoryMixin {
     public abstract int getContainerSize();
 
     @Shadow
+    public abstract boolean add(int slot, ItemStack itemStack);
+
+    @Shadow
     @Final
     private EntityEquipment equipment;
 
@@ -62,6 +65,8 @@ public abstract class InventoryMixin {
         int selected = getSelectedSlot();
         if (!getItem(selected).isEmpty() || bittermelon$hasOtherHeavy(selected) || !equipment.get(EquipmentSlot.OFFHAND).isEmpty()) {
             cir.setReturnValue(false);
+        } else if (slot != selected) {
+            cir.setReturnValue(add(selected, itemStack));
         }
     }
 
