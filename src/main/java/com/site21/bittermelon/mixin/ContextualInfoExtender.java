@@ -22,7 +22,12 @@ public class ContextualInfoExtender implements IExtensibleEnum {
 
     static {
         var stressEntry = create("STRESS", $VALUES.length);
-
         $VALUES = ArrayUtils.add($VALUES, stressEntry);
+
+        var jumpCooldownEntry = create("JUMP_COOLDOWN", $VALUES.length);
+        $VALUES = ArrayUtils.add($VALUES, jumpCooldownEntry);
+
+        var riseEntry = create("RISE", $VALUES.length);
+        $VALUES = ArrayUtils.add($VALUES, riseEntry);
     }
 }

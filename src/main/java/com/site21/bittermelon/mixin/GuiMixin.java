@@ -1,8 +1,9 @@
 package com.site21.bittermelon.mixin;
 
 import com.site21.bittermelon.common.content.entities.mimicplayer.Mimic;
+import com.site21.bittermelon.common.systems.component.heavy.client.JumpCooldownBarRenderer;
 import com.site21.bittermelon.common.systems.stress.client.StressBarRenderer;
-import com.site21.bittermelon.init.neoforge.BitterAttachmentTypes;
+import com.site21.bittermelon.common.systems.stumble.client.RiseBarRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.contextualbar.ContextualBarRenderer;
@@ -30,26 +31,30 @@ public abstract class GuiMixin {
 
     @Unique
     private static final Gui.ContextualInfo bittermelon$STRESS = Enum.valueOf(Gui.ContextualInfo.class, "STRESS");
+    @Unique
+    private static final Gui.ContextualInfo bittermelon$JUMP_COOLDOWN = Enum.valueOf(Gui.ContextualInfo.class, "JUMP_COOLDOWN");
+    @Unique
+    private static final Gui.ContextualInfo bittermelon$RISE = Enum.valueOf(Gui.ContextualInfo.class, "RISE");
 
     @Inject(method = "<init>", at = @At(value = "FIELD", target = "Lnet/minecraft/client/gui/Gui;contextualInfoBarRenderers:Ljava/util/Map;", shift = At.Shift.AFTER))
     private void onInit(Minecraft minecraft, CallbackInfo ci) {
         contextualInfoBarRenderers = new HashMap<>(contextualInfoBarRenderers);
         contextualInfoBarRenderers.put(bittermelon$STRESS, () -> new StressBarRenderer(minecraft));
+        contextualInfoBarRenderers.put(bittermelon$JUMP_COOLDOWN, () -> new JumpCooldownBarRenderer(minecraft));
+        contextualInfoBarRenderers.put(bittermelon$RISE, () -> new RiseBarRenderer(minecraft));
     }
 
     @Inject(method = "nextContextualInfoState", at = @At("HEAD"), cancellable = true)
     private void onNextContextualInfoState(CallbackInfoReturnable<Gui.ContextualInfo> cir) {
-        if (minecraft.player != null && bittermelon$shouldShowStress()) {
+        if (minecraft.player == null) return;
+
+        if (RiseBarRenderer.shouldShow(minecraft.player)) {
+            cir.setReturnValue(bittermelon$RISE);
+        } else if (JumpCooldownBarRenderer.shouldShow(minecraft.player)) {
+            cir.setReturnValue(bittermelon$JUMP_COOLDOWN);
+        } else if (StressBarRenderer.shouldShow(minecraft.player)) {
             cir.setReturnValue(bittermelon$STRESS);
         }
-    }
-
-    @Unique
-    private boolean bittermelon$shouldShowStress() {
-        if (minecraft.player == null) return false;
-
-        int stress = minecraft.player.getData(BitterAttachmentTypes.STRESS);
-        return stress > 0;
     }
 
     @Inject(

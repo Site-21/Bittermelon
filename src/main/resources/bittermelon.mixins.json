@@ -8,6 +8,7 @@
     "InventoryMixin",
     "ItemEntityMixin",
     "ItemMixin",
+    "LivingEntityMixin",
     "PlayerMixin",
     "StyleMixin",
     "StyleSerializerMixin"

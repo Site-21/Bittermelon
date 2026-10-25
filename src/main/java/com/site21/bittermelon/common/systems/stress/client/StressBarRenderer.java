@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +25,10 @@ public class StressBarRenderer implements ContextualBarRenderer {
 
     public StressBarRenderer(Minecraft minecraft) {
         this.minecraft = minecraft;
+    }
+
+    public static boolean shouldShow(Player player) {
+        return player.getData(STRESS) > 0;
     }
 
     @Override

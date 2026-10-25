@@ -21,7 +21,6 @@ import com.site21.bittermelon.common.systems.ragdoll.RagdollEntity;
 import com.site21.bittermelon.common.systems.ragdoll.RagdollUtil;
 import com.site21.bittermelon.common.systems.rage.client.ClientRageHandler;
 import com.site21.bittermelon.common.systems.stumble.client.RiseKeyHandler;
-import com.site21.bittermelon.common.systems.stumble.client.RiseProgressBar;
 import com.site21.bittermelon.common.systems.telecomms.intercom.IntercomManager;
 import com.site21.bittermelon.init.neoforge.BitterAttachmentTypes;
 import com.site21.bittermelon.init.neoforge.BitterMobEffects;
@@ -99,7 +98,6 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onRenderOverlayPost(RenderGuiLayerEvent.@NotNull Post event) {
-        RiseProgressBar.extract(event.getGuiGraphics());
         PhoneTipRenderer.extractPhoneTip(event.getGuiGraphics());
         WireOverlayExtractor.extractWiringOverlay(event.getGuiGraphics());
     }
