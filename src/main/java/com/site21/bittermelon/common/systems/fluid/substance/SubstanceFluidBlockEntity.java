@@ -83,7 +83,7 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
         for (SubstanceStack stack : getMixture().getSubstances()) {
             if (stack.getSubstance().getState() == SubstanceState.GAS) {
                 // TODO: temp solution, eventually use atmos system
-                getMixture().removeSubstance(stack, (int) (stack.getAmount() * 0.01f));
+                getMixture().removeSubstance(stack, Math.max(1, (int) (stack.getAmount() * 0.01f)));
                 hasGas = true;
                 break;
             }
@@ -104,7 +104,7 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }
 
-        setChanged();
+        level.blockEntityChanged(worldPosition);
         ensureTicking(level);
     }
 
