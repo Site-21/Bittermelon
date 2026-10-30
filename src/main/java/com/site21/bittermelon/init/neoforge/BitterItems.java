@@ -2,7 +2,7 @@ package com.site21.bittermelon.init.neoforge;
 
 import com.site21.bittermelon.Bittermelon;
 import com.site21.bittermelon.common.content.items.*;
-import com.site21.bittermelon.common.content.items.clownhammer.ClownHammer;
+import com.site21.bittermelon.common.content.items.balloonhammer.BalloonHammer;
 import com.site21.bittermelon.common.content.items.gun.Handgun;
 import com.site21.bittermelon.common.content.items.handheldsysteminterface.HandheldSystemInterface;
 import com.site21.bittermelon.common.content.items.laserdesignator.LaserDesignatorItem;
@@ -50,7 +50,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.Unit;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -608,8 +607,8 @@ public class BitterItems {
 
     public static final DeferredItem<Handgun> HANDGUN = ITEMS.registerItem("handgun", Handgun::new);
 
-    public static final DeferredItem<ClownHammer> CLOWN_HAMMER = ITEMS.registerItem("clown_hammer", properties ->
-            new ClownHammer(properties.attributes(
+    public static final DeferredItem<BalloonHammer> BALLOON_HAMMER = ITEMS.registerItem("balloon_hammer", properties ->
+            new BalloonHammer(properties.attributes(
                     ItemAttributeModifiers.builder()
                             .add(Attributes.ATTACK_DAMAGE,
                                     new AttributeModifier(Item.BASE_ATTACK_DAMAGE_ID, 10000000, AttributeModifier.Operation.ADD_VALUE),
