@@ -2,7 +2,7 @@ package com.site21.bittermelon.common.events;
 
 import com.site21.bittermelon.Bittermelon;
 import com.site21.bittermelon.common.content.entities.scp939.behavior.SweepArea;
-import com.site21.bittermelon.common.content.items.clownhammer.ClownHammer;
+import com.site21.bittermelon.common.content.items.balloonhammer.BalloonHammer;
 import com.site21.bittermelon.common.content.items.scps.scp377.FortuneHandler;
 import com.site21.bittermelon.common.physics.PhysicsManager;
 import com.site21.bittermelon.common.systems.atmosphere.data.AtmosInstancesData;
@@ -189,8 +189,8 @@ public class CommonEvents {
     }
 
     @SubscribeEvent
-    public static void onClownHammerBreak(BreakBlockEvent event) {
-        if (event.getPlayer().getMainHandItem().getItem() instanceof ClownHammer) {
+    public static void onBalloonHammerBreak(BreakBlockEvent event) {
+        if (event.getPlayer().getMainHandItem().getItem() instanceof BalloonHammer) {
             event.setCanceled(true);
         }
     }
