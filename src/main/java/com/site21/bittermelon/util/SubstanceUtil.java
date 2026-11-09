@@ -112,8 +112,8 @@ public final class SubstanceUtil {
     public static boolean transferToSubstanceFluid(Level level, BlockPos pos, List<SubstanceStack> substances, float temperature) {
         if (level.getBlockEntity(pos) instanceof SubstanceFluidBlockEntity spreadBE) {
             SubstanceMixture mixture = spreadBE.getMixture();
+            mixture.setTemperatureNoUpdate(temperatureForSpread(substances, temperature, mixture.getSubstances(), mixture.getTemperature()));
             mixture.transferSubstances(substances);
-            mixture.setTemperature(temperatureForSpread(substances, temperature, mixture.getSubstances(), mixture.getTemperature()));
             return true;
         }
 

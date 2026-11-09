@@ -122,7 +122,7 @@ public class SubstanceFluid extends Fluid {
         BlockState belowState = level.getBlockState(belowPos);
         if (!canSpreadTo(level, belowPos, belowState)) return false;
 
-        SubstanceFluidBlockEntity target = spreadTo(level, belowPos, belowState, substances);
+        SubstanceFluidBlockEntity target = spreadTo(level, belowPos, belowState, substances, fluidBE.getMixture().getTemperature());
         if (target != null) touched.add(target);
 
         fluidBE.getMixture().setSubstances(List.of());
@@ -160,8 +160,9 @@ public class SubstanceFluid extends Fluid {
             return false;
         }
 
+        float temperature = fluidBE.getMixture().getTemperature();
         for (BlockPos spreadPos : spreadPositions) {
-            SubstanceFluidBlockEntity target = spreadTo(level, spreadPos, substancesToSpread);
+            SubstanceFluidBlockEntity target = spreadTo(level, spreadPos, substancesToSpread, temperature);
             if (target != null) touched.add(target);
         }
 
@@ -234,7 +235,7 @@ public class SubstanceFluid extends Fluid {
             );
             if (substancesToSpread.isEmpty()) return;
 
-            SubstanceFluidBlockEntity target = spreadTo(level, abovePos, substancesToSpread);
+            SubstanceFluidBlockEntity target = spreadTo(level, abovePos, substancesToSpread, fluidBE.getMixture().getTemperature());
             if (target != null) touched.add(target);
 
             for (SubstanceStack spreadStack : substancesToSpread) {
@@ -318,11 +319,18 @@ public class SubstanceFluid extends Fluid {
         int fluidCount = fluids.size();
 
         Map<Substance, Integer> totalsByType = new HashMap<>();
+        float totalHeat = 0;
+        float totalHeatCapacity = 0;
         for (SubstanceFluidBlockEntity be : fluids) {
-            for (SubstanceStack stack : be.getMixture().getSubstances()) {
+            SubstanceMixture mixture = be.getMixture();
+            for (SubstanceStack stack : mixture.getSubstances()) {
                 totalsByType.merge(stack.getSubstance(), stack.getAmount(), Integer::sum);
             }
+            float heatCapacity = mixture.getHeatCapacity();
+            totalHeat += mixture.getTemperature() * heatCapacity;
+            totalHeatCapacity += heatCapacity;
         }
+        float equalizedTemperature = totalHeatCapacity > 0 ? totalHeat / totalHeatCapacity : fluidBE.getMixture().getTemperature();
 
         for (int i = 0; i < fluidCount; i++) {
             SubstanceFluidBlockEntity be = fluids.get(i);
@@ -345,6 +353,7 @@ public class SubstanceFluid extends Fluid {
                 }
             }
 
+            be.getMixture().setTemperatureNoUpdate(equalizedTemperature);
             be.getMixture().setSubstances(newStacks);
         }
 
@@ -357,17 +366,19 @@ public class SubstanceFluid extends Fluid {
         Profiler.get().pop();
     }
 
-    protected @Nullable SubstanceFluidBlockEntity spreadTo(Level level, BlockPos pos, List<SubstanceStack> substances) {
-        return spreadTo(level, pos, level.getBlockState(pos), substances);
+    protected @Nullable SubstanceFluidBlockEntity spreadTo(Level level, BlockPos pos, List<SubstanceStack> substances, float temperature) {
+        return spreadTo(level, pos, level.getBlockState(pos), substances, temperature);
     }
 
-    private @Nullable SubstanceFluidBlockEntity spreadTo(Level level, BlockPos pos, BlockState blockState, List<SubstanceStack> substances) {
+    private @Nullable SubstanceFluidBlockEntity spreadTo(Level level, BlockPos pos, BlockState blockState, List<SubstanceStack> substances, float temperature) {
         if (!blockState.getFluidState().is(this)) {
             level.setBlock(pos, createLegacyBlock(defaultFluidState().setValue(LEVEL, 1)), Block.UPDATE_NONE);
             playFlowSound(level, pos, level.getRandom());
         }
         if (level.getBlockEntity(pos) instanceof SubstanceFluidBlockEntity be) {
-            be.getMixture().transferSubstances(substances);
+            SubstanceMixture mixture = be.getMixture();
+            mixture.setTemperatureNoUpdate(SubstanceUtil.temperatureForSpread(substances, temperature, mixture.getSubstances(), mixture.getTemperature()));
+            mixture.transferSubstances(substances);
             return be;
         }
         return null;

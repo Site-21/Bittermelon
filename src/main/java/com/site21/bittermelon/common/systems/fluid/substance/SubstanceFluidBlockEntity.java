@@ -146,7 +146,7 @@ public class SubstanceFluidBlockEntity extends BlockEntity implements MixtureOwn
         if (substances.isEmpty()) return;
 
         for (BlockPos target : targets) {
-            fluid.spreadTo(level, target, substances);
+            fluid.spreadTo(level, target, substances, mixture.getTemperature());
         }
     }
 
