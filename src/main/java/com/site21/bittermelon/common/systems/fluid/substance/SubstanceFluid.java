@@ -484,9 +484,10 @@ public class SubstanceFluid extends Fluid {
         }
 
         fluidBE.beginConversion();
-        // TODO: Choose different block based on substance
-        level.setBlock(pos, FROZEN_SUBSTANCE.get().defaultBlockState()
-                .setValue(SolidSubstanceBlock.LEVEL, blockLevel), Block.UPDATE_ALL);
+        // TODO: Perhaps better way to choose different block based on substance
+        solidSubstances.sort((a, b) -> Integer.compare(b.getVolume(), a.getVolume()));
+        BlockState solidState = solidSubstances.getFirst().getSubstance().getSolidBlock().defaultBlockState();
+        level.setBlock(pos, solidState.setValue(SolidSubstanceBlock.LEVEL, blockLevel), Block.UPDATE_ALL);
 
         if (level.getBlockEntity(pos) instanceof SolidSubstanceBlockEntity solid) {
             solid.getMixture().setSubstances(solidSubstances);

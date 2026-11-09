@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.site21.bittermelon.common.systems.medical.legacy.drug.Drug;
 import com.site21.bittermelon.common.systems.medical.legacy.drug.DrugHelper;
 import com.site21.bittermelon.common.systems.medical.legacy.drug.DrugInstance;
+import com.site21.bittermelon.init.neoforge.BitterBlocks;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
@@ -12,6 +13,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.common.CommonHooks;
 import org.jetbrains.annotations.NotNull;
 
@@ -127,6 +129,10 @@ public class Substance {
         return properties.molarHeatCapacity;
     }
 
+    public Block getSolidBlock() {
+        return properties.solidBlock;
+    }
+
     public @NotNull Holder<Substance> builtInRegistryHolder() {
         return SUBSTANCE_REGISTRY.get(SUBSTANCE_REGISTRY.getId(this)).orElseThrow();
     }
@@ -146,6 +152,7 @@ public class Substance {
         Consumer<LivingEntity> onContactTick = entity -> {};
         List<MobEffectInstance> contactEffects = new ArrayList<>();
         private boolean applyDrugOnContact = false;
+        private Block solidBlock = BitterBlocks.FROZEN_SUBSTANCE.get();
         private final DataComponentMap.Builder components = DataComponentMap.builder();
 
         public Properties state(SubstanceState state) {
@@ -220,6 +227,11 @@ public class Substance {
 
         public Properties applyDrugOnContact() {
             this.applyDrugOnContact = true;
+            return this;
+        }
+
+        public Properties solidBlock(Block block) {
+            this.solidBlock = block;
             return this;
         }
 

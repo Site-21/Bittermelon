@@ -4,6 +4,7 @@ import com.site21.bittermelon.Bittermelon;
 import com.site21.bittermelon.common.systems.substance.Nature;
 import com.site21.bittermelon.common.systems.substance.Substance;
 import com.site21.bittermelon.common.systems.substance.SubstanceState;
+import com.site21.bittermelon.init.neoforge.BitterBlocks;
 import com.site21.bittermelon.init.neoforge.BitterMobEffects;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -209,6 +210,7 @@ public class Substances {
                     .state(SubstanceState.SOLID)
                     .density(0.917f)
                     .color(0xFFB52222)
+                    .solidBlock(BitterBlocks.RED_ICE.get())
     ));
 
     public static final DeferredHolder<Substance, Substance> RED_STEAM = SUBSTANCES.register("red_steam", () -> new Substance(
