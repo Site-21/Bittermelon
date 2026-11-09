@@ -81,6 +81,7 @@ public class SubstanceFluid extends Fluid {
                 return;
             }
 
+            fluidBE.getMixture().exchangeHeat(298.15f, 1000, level.getGameTime());
             fluidBE.getMixture().tickReactions(level, pos);
             if (tryFreeze(level, pos, fluidBE)) return;
             if (spreadDownwards(level, pos, fluidBE, touched)) return;

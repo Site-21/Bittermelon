@@ -141,6 +141,7 @@ public class CommonEvents {
 
         if (entity.hasData(STAINS) && level.getGameTime() % STAIN_TICK_INTERVAL == 0) {
             SubstanceMixture stains = entity.getData(STAINS);
+            stains.exchangeHeat(310.15f, 10, level.getGameTime());
             stains.tickReactions(level, pos);
 
             for (SubstanceStack stack : stains.getSubstances()) {

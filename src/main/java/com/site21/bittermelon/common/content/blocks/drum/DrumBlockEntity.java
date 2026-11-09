@@ -58,6 +58,7 @@ public class DrumBlockEntity extends BlockEntity implements MixtureOwner {
         if (level.getGameTime() % 20 != 0) return;
 
         if (mixture != null) {
+            mixture.exchangeHeat(298.15f, 100, level.getGameTime());
             mixture.tickReactions(level, pos);
         }
 

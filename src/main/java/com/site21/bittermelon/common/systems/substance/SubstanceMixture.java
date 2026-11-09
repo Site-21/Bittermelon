@@ -32,6 +32,7 @@ public class SubstanceMixture implements SubstanceContainer {
     private int cachedVolume = -1;
     private int cachedColor = -1;
     private int cachedViscosity = -1;
+    private long lastHeatTick = 0;
 
     public SubstanceMixture(List<SubstanceStack> substances, float temperature) {
         this.substances = new ArrayList<>(substances);
@@ -200,6 +201,31 @@ public class SubstanceMixture implements SubstanceContainer {
             }
         }
         newSubstances.add(stack);
+    }
+
+    /**
+     * Exchanges heat between the substance mixture and the ambient environment.
+     * @param ambientTemperature The temperature of the surrounding environment in Kelvin.
+     * @param heatTransferRate The rate at which heat is transferred between the mixture and the environment.
+     * @param gameTime The current game time in ticks.
+     */
+    public void exchangeHeat(float ambientTemperature, float heatTransferRate, long gameTime) {
+        if (lastHeatTick == 0) {
+            lastHeatTick = gameTime;
+            return;
+        }
+
+        float heatCapacity = getHeatCapacity();
+        if (heatCapacity <= 0) return;
+
+        float dt = gameTime - lastHeatTick;
+        if (dt <= 0) return;
+
+        float t = heatCapacity/ heatTransferRate;
+
+        // Newton's law of cooling
+        setTemperatureNoUpdate((float) (ambientTemperature + (getTemperature() - ambientTemperature) * Math.exp(-dt / t)));
+        lastHeatTick = gameTime;
     }
 
     public void setTemperature(float temperature) {
