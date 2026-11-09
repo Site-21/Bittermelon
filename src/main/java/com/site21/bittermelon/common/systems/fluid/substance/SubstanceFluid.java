@@ -449,7 +449,7 @@ public class SubstanceFluid extends Fluid {
         int blockLevel = getBlockLevel(volume);
 
         if (canSpreadTo(level, pos.above()) && blockLevel == 20) {
-            SubstanceUtil.spill(level, pos.above(), nonSolidSubstances);
+            SubstanceUtil.spill(level, pos.above(), nonSolidSubstances, temperature);
         } else {
             solidSubstances.addAll(nonSolidSubstances);
 //            List<BlockPos> spreadPositions = new ArrayList<>(4);

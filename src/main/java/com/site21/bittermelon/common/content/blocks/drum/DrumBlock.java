@@ -2,6 +2,7 @@ package com.site21.bittermelon.common.content.blocks.drum;
 
 import com.mojang.math.OctahedralGroup;
 import com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluid;
+import com.site21.bittermelon.common.systems.substance.SubstanceMixture;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import com.site21.bittermelon.init.neoforge.BitterSounds;
 import com.site21.bittermelon.util.SubstanceUtil;
@@ -112,11 +113,12 @@ public class DrumBlock extends Block implements Fallable, EntityBlock {
         if (facing == Direction.DOWN && !level.getBlockState(pos.below()).canBeReplaced()) return;
 
         if (level.getBlockEntity(pos) instanceof DrumBlockEntity barrel) {
-            if (facing == Direction.UP && barrel.getMixture().getVolume() < SubstanceFluid.FULL_BLOCK_VOLUME) return;
+            SubstanceMixture mixture = barrel.getMixture();
+            if (facing == Direction.UP && mixture.getVolume() < SubstanceFluid.FULL_BLOCK_VOLUME) return;
             BlockPos spillPos = pos.relative(facing);
-            List<SubstanceStack> substances = barrel.getMixture().spreadSubstancesByPercentage(SUBSTANCE_SPILL_PERCENTAGE);
-            SubstanceUtil.spill(level, spillPos, substances);
-            barrel.getMixture().removeSubstances(substances);
+            List<SubstanceStack> substances = mixture.spreadSubstancesByPercentage(SUBSTANCE_SPILL_PERCENTAGE);
+            SubstanceUtil.spill(level, spillPos, substances, mixture.getTemperature());
+            mixture.removeSubstances(substances);
             level.scheduleTick(pos, this, TICK_DELAY);
         }
     }

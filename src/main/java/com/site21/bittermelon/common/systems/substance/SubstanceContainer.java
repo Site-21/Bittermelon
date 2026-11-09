@@ -26,7 +26,7 @@ public interface SubstanceContainer {
 
     void modifyTemperatureNoUpdate(float delta);
 
-    Collection<SubstanceStack> getSubstances();
+    List<SubstanceStack> getSubstances();
 
     default EnumSet<Nature> getNatures() {
         EnumSet<Nature> natures = EnumSet.noneOf(Nature.class);

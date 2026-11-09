@@ -76,7 +76,7 @@ public class FluidProjectile extends Projectile {
         super.onHitBlock(result);
         if (level().isClientSide()) return;
 
-        spill(level(), result.getBlockPos().above(), mixture.getSubstances());
+        spill(level(), result.getBlockPos().above(), mixture);
         playSplashSound();
         discard();
     }
@@ -91,7 +91,7 @@ public class FluidProjectile extends Projectile {
             List<SubstanceStack> substances = mixture.spreadSubstancesByPercentage(0.5f);
 
             stains.transferSubstances(substances);
-            spill(level(), target.blockPosition(), substances);
+            spill(level(), target.blockPosition(), substances, mixture.getTemperature());
 
             playSplashSound();
             discard();

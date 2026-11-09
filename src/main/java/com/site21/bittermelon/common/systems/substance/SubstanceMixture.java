@@ -146,7 +146,7 @@ public class SubstanceMixture implements SubstanceContainer {
         markSearchDirty();
     }
 
-    public void transferSubstances(@NotNull List<SubstanceStack> newSubstances) {
+    public void transferSubstances(List<SubstanceStack> newSubstances) {
         if (newSubstances.isEmpty()) return;
         for (SubstanceStack stack : newSubstances) {
             updateSubstanceNoUpdate(stack.copy());

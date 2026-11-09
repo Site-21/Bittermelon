@@ -2,6 +2,8 @@ package com.site21.bittermelon.util;
 
 import com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluid;
 import com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluidBlockEntity;
+import com.site21.bittermelon.common.systems.substance.SubstanceContainer;
+import com.site21.bittermelon.common.systems.substance.SubstanceMixture;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -39,6 +41,27 @@ public final class SubstanceUtil {
         return SubstanceUtil.getTotalVolume(substances) * GAS_CONSTANT * temperature / volume;
     }
 
+    /**
+     * Spill the contents of a SubstanceContainer into the world at the given position, using a default temperature of 273.15 K.
+     * @param level the level to spill the substances into
+     * @param pos the position to spill the substances at
+     * @param substances the list of substances to spill
+     * @return true if the substances were successfully spilled, false otherwise
+     */
+    public static boolean spill(Level level, BlockPos pos, List<SubstanceStack> substances) {
+        return spill(level, pos, substances, 273.15f);
+    }
+
+    /**
+     * Spill the contents of a SubstanceContainer into the world at the given position.
+     * @param level the level to spill the substances into
+     * @param pos the position to spill the substances at
+     * @param container the SubstanceContainer containing the substances to spill
+     * @return true if the substances were successfully spilled, false otherwise
+     */
+    public static boolean spill(Level level, BlockPos pos, SubstanceContainer container) {
+        return spill(level, pos, container.getSubstances(), container.getTemperature());
+    }
 
     /**
      * Spill a list of substances into the world at the given position.
@@ -47,9 +70,10 @@ public final class SubstanceUtil {
      * @param level the level to spill the substances into
      * @param pos the position to spill the substances at
      * @param substances the list of substances to spill
+     * @param temperature the temperature of the substances
      * @return true if the substances were successfully spilled, false otherwise
      */
-    public static boolean spill(Level level, BlockPos pos, List<SubstanceStack> substances) {
+    public static boolean spill(Level level, BlockPos pos, List<SubstanceStack> substances, float temperature) {
         if (substances.isEmpty()) return false;
 
         SubstanceFluid fluid = SUBSTANCE_FLUID.get();
@@ -58,23 +82,23 @@ public final class SubstanceUtil {
             level.setBlock(pos, fluid.defaultFluidState().createLegacyBlock(), Block.UPDATE_NONE);
         }
 
-        return transferToSubstanceFluid(level, pos, substances);
+        return transferToSubstanceFluid(level, pos, substances, temperature);
     }
 
     /**
      * Replace the block at the given position with a SubstanceFluid block and transfer the given substances to it.
      * @param level the level to replace the block in
      * @param pos the position to replace with a SubstanceFluid block
-     * @param substances the list of substances to transfer
+     * @param container the SubstanceContainer containing the substances to transfer
      * @return true if the substances were successfully transferred, false otherwise
      */
-    public static boolean replaceWithSubstanceFluid(Level level, BlockPos pos, List<SubstanceStack> substances) {
-        if (substances.isEmpty()) return false;
+    public static boolean replaceWithSubstanceFluid(Level level, BlockPos pos, SubstanceContainer container) {
+        if (container.getSubstances().isEmpty()) return false;
 
         SubstanceFluid fluid = SUBSTANCE_FLUID.get();
         level.setBlock(pos, fluid.defaultFluidState().createLegacyBlock(), Block.UPDATE_NONE);
 
-        return transferToSubstanceFluid(level, pos, substances);
+        return transferToSubstanceFluid(level, pos, container.getSubstances(), container.getTemperature());
     }
 
     /**
@@ -82,15 +106,45 @@ public final class SubstanceUtil {
      * @param level the level to transfer the substances in
      * @param pos the position of the SubstanceFluidBlockEntity
      * @param substances the list of substances to transfer
+     * @param temperature the temperature of the substances
      * @return true if the substances were successfully transferred, false otherwise
      */
-    public static boolean transferToSubstanceFluid(Level level, BlockPos pos, List<SubstanceStack> substances) {
+    public static boolean transferToSubstanceFluid(Level level, BlockPos pos, List<SubstanceStack> substances, float temperature) {
         if (level.getBlockEntity(pos) instanceof SubstanceFluidBlockEntity spreadBE) {
-            spreadBE.getMixture().transferSubstances(substances);
+            SubstanceMixture mixture = spreadBE.getMixture();
+            mixture.transferSubstances(substances);
+            mixture.setTemperature(temperatureForSpread(substances, temperature, mixture.getSubstances(), mixture.getTemperature()));
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Calculate the resulting temperature when spreading substances from one list to another, based on their heat capacities and temperatures.
+     * If either list has a heat capacity of 0, the temperature of the "from" substances is returned.
+     * @param fromSubstances the list of substances being spread from
+     * @param fromTemperature the temperature of the "from" substances
+     * @param toSubstances the list of substances being spread to
+     * @param toTemperature the temperature of the "to" substances
+     * @return the resulting temperature after spreading the substances
+     */
+    public static float temperatureForSpread(List<SubstanceStack> fromSubstances, float fromTemperature, List<SubstanceStack> toSubstances, float toTemperature) {
+        float fromHeatCapacity = getHeatCapacity(fromSubstances);
+        float toHeatCapacity = getHeatCapacity(toSubstances);
+
+        if (fromHeatCapacity <= 0 || toHeatCapacity <= 0) return fromTemperature;
+
+        float totalHeatCapacity = fromHeatCapacity + toHeatCapacity;
+        return (fromTemperature * fromHeatCapacity + toTemperature * toHeatCapacity) / totalHeatCapacity;
+    }
+
+    public static float getHeatCapacity(List<SubstanceStack> substances) {
+        float capacity = 0;
+        for (SubstanceStack stack : substances) {
+            capacity += stack.getAmount() * stack.getSubstance().getMolarHeatCapacity();
+        }
+        return capacity;
     }
 
     /**

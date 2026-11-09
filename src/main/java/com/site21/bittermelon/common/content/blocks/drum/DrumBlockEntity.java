@@ -81,7 +81,7 @@ public class DrumBlockEntity extends BlockEntity implements MixtureOwner {
                 if (level.getRandom().nextFloat() < pressureRatio) {
                     Vec3 explosionPos;
                     if (pressureRatio >= EXPLOSION_THRESHOLD) {
-                        SubstanceUtil.replaceWithSubstanceFluid(level, pos, mixture.getSubstances());
+                        SubstanceUtil.replaceWithSubstanceFluid(level, pos, mixture);
                         level.addDestroyBlockEffect(pos, state);
                         explosionPos = Vec3.atCenterOf(pos);
                     } else {

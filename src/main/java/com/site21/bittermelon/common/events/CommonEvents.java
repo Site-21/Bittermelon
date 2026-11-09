@@ -149,7 +149,7 @@ public class CommonEvents {
 
             if (stains.getVolume() > 10 && level.getRandom().nextFloat() > 0.1f) {
                 List<SubstanceStack> drippedSubstances = stains.spreadSubstancesByVolume(10);
-                if (spill(level, pos, drippedSubstances)) {
+                if (spill(level, pos, drippedSubstances, stains.getTemperature())) {
                     stains.removeSubstances(drippedSubstances);
                     level.playSound(null, pos, SoundEvents.POINTED_DRIPSTONE_DRIP_WATER,
                             SoundSource.AMBIENT, 1.0f, 0.8f + level.getRandom().nextFloat() * 0.4f);
