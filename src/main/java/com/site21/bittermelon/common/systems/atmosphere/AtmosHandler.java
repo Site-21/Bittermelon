@@ -1,7 +1,7 @@
 package com.site21.bittermelon.common.systems.atmosphere;
 
 import com.site21.bittermelon.common.systems.atmosphere.data.AtmosChunkGrid;
-import com.site21.bittermelon.common.systems.atmosphere.data.AtmosData;
+import com.site21.bittermelon.common.systems.atmosphere.data.AtmosZones;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -56,7 +56,7 @@ public final class AtmosHandler {
      * @param instance The atmosphere instance to remove.
      */
     public static void removeAtmosphere(@NotNull Level level, @NotNull AtmosZone instance) {
-        AtmosData.get(level).removeAtmosInstance(instance.getId());
+        AtmosZones.get(level).removeAtmosInstance(instance.getId());
     }
 
     /**
@@ -103,7 +103,7 @@ public final class AtmosHandler {
 
         AtmosZone newInstance = new AtmosZone(0, temperature, gasses);
         updateAtmosphere(level, startPos, newInstance);
-        AtmosData.get(level).addAtmosInstance(newInstance);
+        AtmosZones.get(level).addAtmosInstance(newInstance);
     }
 
     /**
@@ -113,6 +113,7 @@ public final class AtmosHandler {
      * @param atmosZone The atmosphere instance to update.
      */
     public static void updateAtmosphere(@NotNull Level level, BlockPos startPos, AtmosZone atmosZone) {
+        if (level.canSeeSky(startPos)) return;
         Set<BlockPos> floodFill = FloodFill.run(level, startPos, 1000);
         updateAtmosphere(level, atmosZone, floodFill);
     }
