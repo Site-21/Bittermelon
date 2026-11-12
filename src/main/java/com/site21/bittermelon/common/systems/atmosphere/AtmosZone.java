@@ -5,8 +5,6 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.site21.bittermelon.common.systems.substance.Substance;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import com.site21.bittermelon.util.SubstanceUtil;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,33 +14,27 @@ import java.util.List;
 import static com.site21.bittermelon.util.SubstanceUtil.GAS_CONSTANT;
 
 public class AtmosZone {
-    private static final Codec<LongSet> LONG_SET_CODEC = Codec.LONG.listOf()
-            .xmap(
-                    LongOpenHashSet::new,
-                    ArrayList::new
-            );
-
     public static final Codec<AtmosZone> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.INT.fieldOf("id").forGetter(AtmosZone::getId),
             Codec.FLOAT.fieldOf("temperature").forGetter(AtmosZone::getTemperature),
             SubstanceStack.CODEC.listOf().fieldOf("gases").forGetter(AtmosZone::getGases),
-            LONG_SET_CODEC.fieldOf("blocks").forGetter(AtmosZone::getBlocks)
+            Codec.INT.fieldOf("blocks").forGetter(AtmosZone::getBlocks)
     ).apply(instance, AtmosZone::new));
 
     private final int id;
     private final List<SubstanceStack> gases;
     private float temperature; // Kelvin
-    private final LongSet blocks;
+    private int blocks;
 
-    public AtmosZone(int id, float initialTemp, List<SubstanceStack> initialGasses, LongSet blocks) {
+    public AtmosZone(int id, float initialTemp, List<SubstanceStack> initialGasses, int blocks) {
         this.id = id;
         this.gases = new ArrayList<>(initialGasses);
         this.temperature = initialTemp;
-        this.blocks = new LongOpenHashSet(blocks);
+        this.blocks = 0;
     }
 
     public AtmosZone(int id, float initialTemp, List<SubstanceStack> initialGasses) {
-        this(id, initialTemp, initialGasses, new LongOpenHashSet());
+        this(id, initialTemp, initialGasses, 0);
     }
 
     public float getTemperature() {
@@ -59,8 +51,8 @@ public class AtmosZone {
      * @return The pressure in kPa.
      */
     public float getPressure() {
-        if (blocks.isEmpty()) return 0;
-        return SubstanceUtil.getTotalVolume(gases) * GAS_CONSTANT * temperature / (blocks.size() * 1000);
+        if (blocks == 0) return 0;
+        return SubstanceUtil.getTotalVolume(gases) * GAS_CONSTANT * temperature / (blocks * 1000);
     }
 
     public int getId() {
@@ -74,7 +66,7 @@ public class AtmosZone {
      * @param level     The level in which the block is being added.
      */
     public void addBlock(Long packedPos, @NotNull Level level) {
-        blocks.add(packedPos);
+        blocks++;
     }
 
     /**
@@ -84,7 +76,7 @@ public class AtmosZone {
      * @param level     The level in which the block is being removed.
      */
     public void removeBlock(Long packedPos, @NotNull Level level) {
-        blocks.remove(packedPos);
+        blocks--;
     }
 
     /**
@@ -92,7 +84,7 @@ public class AtmosZone {
      *
      * @return A LongSet of packed block positions.
      */
-    public LongSet getBlocks() {
+    public int getBlocks() {
         return blocks;
     }
 
