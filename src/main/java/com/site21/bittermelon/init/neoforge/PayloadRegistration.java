@@ -118,12 +118,6 @@ public class PayloadRegistration {
                 ContainmentNameUpdate::handle
         );
 
-        registrar.playToClient(
-                AtmosChunkUpdate.TYPE,
-                AtmosChunkUpdate.STREAM_CODEC,
-                AtmosChunkUpdate::handle
-        );
-
         registrar.playToServer(
                 ReleasePressureUpdate.TYPE,
                 ReleasePressureUpdate.STREAM_CODEC,
@@ -161,51 +155,9 @@ public class PayloadRegistration {
         );
 
         registrar.playToClient(
-                SyncAtmosInstances.TYPE,
-                SyncAtmosInstances.STREAM_CODEC,
-                SyncAtmosInstances::handle
-        );
-
-        registrar.playToClient(
-                SyncAtmosInstance.TYPE,
-                SyncAtmosInstance.STREAM_CODEC,
-                SyncAtmosInstance::handle
-        );
-
-        registrar.playToClient(
                 SyncCharacters.TYPE,
                 SyncCharacters.STREAM_CODEC,
                 SyncCharacters::handle
-        );
-
-        registrar.playToClient(
-                CreateAtmosInstance.TYPE,
-                CreateAtmosInstance.STREAM_CODEC,
-                CreateAtmosInstance::handle
-        );
-
-        registrar.playToClient(
-                RemoveAtmosInstance.TYPE,
-                RemoveAtmosInstance.STREAM_CODEC,
-                RemoveAtmosInstance::handle
-        );
-
-        registrar.playToClient(
-                UpdateAtmosTemperature.TYPE,
-                UpdateAtmosTemperature.STREAM_CODEC,
-                UpdateAtmosTemperature::handle
-        );
-
-        registrar.playToClient(
-                UpdateAtmosBlocks.TYPE,
-                UpdateAtmosBlocks.STREAM_CODEC,
-                UpdateAtmosBlocks::handle
-        );
-
-        registrar.playToClient(
-                UpdateAtmosGas.TYPE,
-                UpdateAtmosGas.STREAM_CODEC,
-                UpdateAtmosGas::handle
         );
 
         registrar.playToServer(

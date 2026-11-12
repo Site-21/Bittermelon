@@ -1,7 +1,7 @@
 package com.site21.bittermelon.common.content.blocks.electronics.environmentsensor;
 
 import com.site21.bittermelon.common.systems.atmosphere.AtmosHandler;
-import com.site21.bittermelon.common.systems.atmosphere.AtmosInstance;
+import com.site21.bittermelon.common.systems.atmosphere.AtmosZone;
 import com.site21.bittermelon.common.systems.electronics.ElectronicDevice;
 import com.site21.bittermelon.common.content.blocks.electronics.ElectronicBlockEntity;
 import com.site21.bittermelon.common.systems.electronics.wiring.OutputPort;
@@ -39,9 +39,9 @@ public class EnvironmentSensorBlockEntity extends ElectronicBlockEntity implemen
 
     public void tick() {
         if (level == null) return;
-        AtmosInstance atmosInstance = AtmosHandler.getAtmosInstanceAt(level, worldPosition.above());
+        AtmosZone atmosZone = AtmosHandler.getAtmosInstanceAt(level, worldPosition.above());
         // TODO: Remove above once shape is fixed
-        if (atmosInstance == null) {
+        if (atmosZone == null) {
             if (temperature != FALLBACK_TEMPERATURE || pressure != FALLBACK_PRESSURE) {
                 temperature = FALLBACK_TEMPERATURE;
                 pressure = FALLBACK_PRESSURE;
@@ -49,8 +49,8 @@ public class EnvironmentSensorBlockEntity extends ElectronicBlockEntity implemen
             }
             return;
         }
-        float temperature = atmosInstance.getTemperature();
-        float pressure = atmosInstance.getPressure();
+        float temperature = atmosZone.getTemperature();
+        float pressure = atmosZone.getPressure();
         boolean changed = false;
 
         if (temperature != this.temperature) {
@@ -63,8 +63,8 @@ public class EnvironmentSensorBlockEntity extends ElectronicBlockEntity implemen
             changed = true;
         }
 
-        if (!gases.containsAll(atmosInstance.getGases())) {
-            gases.addAll(atmosInstance.getGases());
+        if (!gases.containsAll(atmosZone.getGases())) {
+            gases.addAll(atmosZone.getGases());
             changed = true;
         }
 

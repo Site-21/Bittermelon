@@ -1,7 +1,7 @@
 package com.site21.bittermelon.client.render;
 
 import com.site21.bittermelon.common.systems.atmosphere.AtmosHandler;
-import com.site21.bittermelon.common.systems.atmosphere.AtmosInstance;
+import com.site21.bittermelon.common.systems.atmosphere.AtmosZone;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +20,7 @@ public class AtmosFog {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return null;
 
-        AtmosInstance instance = AtmosHandler.getAtmosInstanceAt(mc.level, mc.player.getOnPos().above());
+        AtmosZone instance = AtmosHandler.getAtmosInstanceAt(mc.level, mc.player.getOnPos().above());
         if (instance == null) return null;
 
         float fogDensity = calculateFogDensity(instance);
@@ -35,7 +35,7 @@ public class AtmosFog {
         return new FogRenderer.Fog(fogStart, 2, color);
     }
 
-    private static float calculateFogDensity(@NotNull AtmosInstance instance) {
+    private static float calculateFogDensity(@NotNull AtmosZone instance) {
         float weightedAmount = 0;
 
         for (SubstanceStack stack : instance.getGases()) {

@@ -5,8 +5,6 @@ import com.site21.bittermelon.common.content.entities.scp939.behavior.SweepArea;
 import com.site21.bittermelon.common.content.items.clownhammer.ClownHammer;
 import com.site21.bittermelon.common.content.items.scps.scp377.FortuneHandler;
 import com.site21.bittermelon.common.physics.PhysicsManager;
-import com.site21.bittermelon.common.systems.atmosphere.data.AtmosInstancesData;
-import com.site21.bittermelon.common.systems.atmosphere.networking.AtmosChunkUpdate;
 import com.site21.bittermelon.common.systems.blockdamage.BlockDamageUtil;
 import com.site21.bittermelon.common.systems.carry.CarryHandler;
 import com.site21.bittermelon.common.systems.character.Character;
@@ -56,7 +54,6 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
-import net.neoforged.neoforge.event.level.ChunkWatchEvent;
 import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
@@ -238,7 +235,6 @@ public class CommonEvents {
         if (event.getEntity() instanceof ServerPlayer player) {
             Level level = player.level();
 
-            AtmosInstancesData.get(level).syncToClient();
             PacketDistributor.sendToPlayer(player, new SyncIntercomList(IntercomManager.get(level).getIntercomIDs()));
 
             CharacterManager characterManager = CharacterManager.get(level);
@@ -261,13 +257,6 @@ public class CommonEvents {
             }
             event.setRefillAirAmount(0);
         }
-    }
-
-    @SubscribeEvent
-    public static void onChunkSent(ChunkWatchEvent.@NotNull Sent event) {
-        // Sync the atmosphere data for the chunk to the player when they start tracking it
-        PacketDistributor.sendToPlayer(event.getPlayer(),
-                new AtmosChunkUpdate(event.getPos(), event.getChunk().getData(ATMOSPHERE.get())));
     }
 
     @SubscribeEvent

@@ -8,7 +8,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.site21.bittermelon.common.content.blocks.fluid.FluidBlockEntity;
 import com.site21.bittermelon.common.content.items.substance.SubstanceContainerItem;
 import com.site21.bittermelon.common.systems.atmosphere.AtmosHandler;
-import com.site21.bittermelon.common.systems.atmosphere.AtmosInstance;
+import com.site21.bittermelon.common.systems.atmosphere.AtmosZone;
 import com.site21.bittermelon.common.systems.fluid.substance.SubstanceFluidBlockEntity;
 import com.site21.bittermelon.common.systems.substance.Substance;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
@@ -207,7 +207,7 @@ public class SubstanceCommand {
     }
 
     private static int addTemperatureAtmos(@NotNull CommandSourceStack source, float temperature) {
-        AtmosInstance instance = requireAtmosInstance(source);
+        AtmosZone instance = requireAtmosInstance(source);
         if (instance == null) return 0;
 
         instance.setTemperature(temperature, source.getLevel());
@@ -216,7 +216,7 @@ public class SubstanceCommand {
     }
 
     private static int showAtmosContents(@NotNull CommandSourceStack source) {
-        AtmosInstance instance = requireAtmosInstance(source);
+        AtmosZone instance = requireAtmosInstance(source);
         if (instance == null) return 0;
 
         source.sendSuccess(() -> Component.literal("Temperature: " + instance.getTemperature() + " K"), true);
@@ -234,8 +234,8 @@ public class SubstanceCommand {
         return 1;
     }
 
-    private static AtmosInstance requireAtmosInstance(@NotNull CommandSourceStack source) {
-        AtmosInstance instance = AtmosHandler.getAtmosInstanceAt(source.getLevel(), blockPosOf(source));
+    private static AtmosZone requireAtmosInstance(@NotNull CommandSourceStack source) {
+        AtmosZone instance = AtmosHandler.getAtmosInstanceAt(source.getLevel(), blockPosOf(source));
         if (instance == null) {
             source.sendFailure(Component.literal("No atmosphere found at current position."));
         }

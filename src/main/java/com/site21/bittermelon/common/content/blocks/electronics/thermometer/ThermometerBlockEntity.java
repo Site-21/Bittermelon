@@ -1,7 +1,7 @@
 package com.site21.bittermelon.common.content.blocks.electronics.thermometer;
 
 import com.site21.bittermelon.common.systems.atmosphere.AtmosHandler;
-import com.site21.bittermelon.common.systems.atmosphere.AtmosInstance;
+import com.site21.bittermelon.common.systems.atmosphere.AtmosZone;
 import com.site21.bittermelon.common.content.blocks.electronics.ElectronicBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,15 +20,15 @@ public class ThermometerBlockEntity extends ElectronicBlockEntity {
 
     public void tick() {
         if (level == null) return;
-        AtmosInstance atmosInstance = AtmosHandler.getAtmosInstanceAt(level, worldPosition);
-        if (atmosInstance == null) {
+        AtmosZone atmosZone = AtmosHandler.getAtmosInstanceAt(level, worldPosition);
+        if (atmosZone == null) {
             if (temperature != 22) {
                 temperature = 22;
                 setChanged();
             }
             return;
         }
-        float temperature = atmosInstance.getTemperature();
+        float temperature = atmosZone.getTemperature();
 
         if (temperature != this.temperature) {
             this.temperature = temperature;

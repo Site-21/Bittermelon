@@ -3,7 +3,7 @@ package com.site21.bittermelon.init.neoforge;
 import com.mojang.serialization.Codec;
 import com.site21.bittermelon.Bittermelon;
 import com.site21.bittermelon.common.content.items.scps.scp377.FortuneInstance;
-import com.site21.bittermelon.common.systems.atmosphere.data.AtmosBlockData;
+import com.site21.bittermelon.common.systems.atmosphere.data.AtmosChunkGrid;
 import com.site21.bittermelon.common.systems.blockdamage.BlockDamageData;
 import com.site21.bittermelon.common.systems.electronics.wiring.WireNetwork;
 import com.site21.bittermelon.common.systems.medical.bodypart.HealthContainer;
@@ -33,8 +33,8 @@ public class BitterAttachmentTypes {
                     new UUID(0, 0)).serialize(UUIDUtil.CODEC.fieldOf("active_character")).copyOnDeath().build()
     );
 
-    public static final Supplier<AttachmentType<AtmosBlockData>> ATMOSPHERE = ATTACHMENT_TYPES.register(
-            "atmosphere", () -> AttachmentType.builder(AtmosBlockData::new).serialize(AtmosBlockData.CODEC.fieldOf("atmosphere")).build()
+    public static final Supplier<AttachmentType<AtmosChunkGrid>> ATMOSPHERE = ATTACHMENT_TYPES.register(
+            "atmosphere", () -> AttachmentType.builder(AtmosChunkGrid::new).serialize(AtmosChunkGrid.CODEC.fieldOf("atmosphere")).build()
     );
 
     public static final Supplier<AttachmentType<Integer>> ACTIVE_CHANNEL = ATTACHMENT_TYPES.register(

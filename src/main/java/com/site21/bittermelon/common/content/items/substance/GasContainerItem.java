@@ -1,7 +1,7 @@
 package com.site21.bittermelon.common.content.items.substance;
 
 import com.site21.bittermelon.common.systems.atmosphere.AtmosHandler;
-import com.site21.bittermelon.common.systems.atmosphere.AtmosInstance;
+import com.site21.bittermelon.common.systems.atmosphere.AtmosZone;
 import com.site21.bittermelon.common.systems.component.SubstanceContents;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import com.site21.bittermelon.util.SubstanceUtil;
@@ -91,16 +91,16 @@ public class GasContainerItem extends SubstanceContainerItem {
     public void transferGas(ItemStack stack, @NotNull Level level, @NotNull Entity entity) {
         if (level.isClientSide()) return;
 
-        AtmosInstance atmosInstance = AtmosHandler.getAtmosInstanceAt(level, entity.getOnPos());
-        if (atmosInstance == null) {
+        AtmosZone atmosZone = AtmosHandler.getAtmosInstanceAt(level, entity.getOnPos());
+        if (atmosZone == null) {
             AtmosHandler.addAtmosphere(level, entity.getOnPos(), 293.15f, List.of(new SubstanceStack(OXYGEN.get(), 1)));
-            atmosInstance = AtmosHandler.getAtmosInstanceAt(level, entity.getOnPos());
+            atmosZone = AtmosHandler.getAtmosInstanceAt(level, entity.getOnPos());
         }
 
-        if (atmosInstance == null || atmosInstance.getPressure() <= 0 || getReleasePressure(stack) < atmosInstance.getPressure()) return;
+        if (atmosZone == null || atmosZone.getPressure() <= 0 || getReleasePressure(stack) < atmosZone.getPressure()) return;
 
         int totalVolume = getTotalVolume(stack);
-        int transferVolume = (int) (((getReleasePressure(stack) * totalVolume) / atmosInstance.getPressure()) / 100);
+        int transferVolume = (int) (((getReleasePressure(stack) * totalVolume) / atmosZone.getPressure()) / 100);
 
         // TODO: Propulsion when transfer volume is too high
 
@@ -117,7 +117,7 @@ public class GasContainerItem extends SubstanceContainerItem {
             if (proportionalTransferVolume > 0) {
                 SubstanceStack transferredSubstance = substance.copy();
                 transferredSubstance.setVolume(proportionalTransferVolume);
-                atmosInstance.updateGas(transferredSubstance, entity.level());
+                atmosZone.updateGas(transferredSubstance, entity.level());
 
                 substance.modifyVolume(-proportionalTransferVolume);
                 if (substance.getVolume() <= 0.001f) {

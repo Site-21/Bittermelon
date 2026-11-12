@@ -8,7 +8,7 @@ import com.site21.bittermelon.client.render.TypingIndicatorRenderer;
 import com.site21.bittermelon.common.content.blocks.electronics.intercom.client.PhoneTipRenderer;
 import com.site21.bittermelon.common.content.items.wire.client.WireFeatureRenderer;
 import com.site21.bittermelon.common.content.items.wire.client.WireOverlayExtractor;
-import com.site21.bittermelon.common.systems.atmosphere.data.AtmosInstancesData;
+import com.site21.bittermelon.common.systems.atmosphere.data.AtmosData;
 import com.site21.bittermelon.common.systems.blockdamage.client.BlockDamageExtractor;
 import com.site21.bittermelon.common.systems.carry.CarryHandler;
 import com.site21.bittermelon.common.systems.carry.CarryRenderer;
@@ -54,7 +54,7 @@ public class ClientEvents {
         AccountRegistry.clearClientData();
         CharacterManager.clearClientData();
         PersonnelRegistry.clearClientData();
-        AtmosInstancesData.clearClientData();
+        AtmosData.clearClientData();
         IntercomManager.clearClientData();
         PrivilegeManager.clearClientData();
     }
