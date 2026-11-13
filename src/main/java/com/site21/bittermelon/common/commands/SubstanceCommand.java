@@ -235,7 +235,7 @@ public class SubstanceCommand {
     }
 
     private static AtmosZone requireAtmosInstance(@NotNull CommandSourceStack source) {
-        AtmosZone instance = AtmosHandler.getAtmosInstanceAt(source.getLevel(), blockPosOf(source));
+        AtmosZone instance = AtmosHandler.getZoneAt(source.getLevel(), blockPosOf(source));
         if (instance == null) {
             source.sendFailure(Component.literal("No atmosphere found at current position."));
         }

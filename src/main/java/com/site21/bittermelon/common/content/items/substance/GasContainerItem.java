@@ -91,10 +91,10 @@ public class GasContainerItem extends SubstanceContainerItem {
     public void transferGas(ItemStack stack, @NotNull Level level, @NotNull Entity entity) {
         if (level.isClientSide()) return;
 
-        AtmosZone atmosZone = AtmosHandler.getAtmosInstanceAt(level, entity.getOnPos());
+        AtmosZone atmosZone = AtmosHandler.getZoneAt(level, entity.getOnPos());
         if (atmosZone == null) {
             AtmosHandler.addAtmosphere(level, entity.getOnPos(), 293.15f, List.of(new SubstanceStack(OXYGEN.get(), 1)));
-            atmosZone = AtmosHandler.getAtmosInstanceAt(level, entity.getOnPos());
+            atmosZone = AtmosHandler.getZoneAt(level, entity.getOnPos());
         }
 
         if (atmosZone == null || atmosZone.getPressure() <= 0 || getReleasePressure(stack) < atmosZone.getPressure()) return;

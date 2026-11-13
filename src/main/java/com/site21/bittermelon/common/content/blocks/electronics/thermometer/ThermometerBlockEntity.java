@@ -20,7 +20,7 @@ public class ThermometerBlockEntity extends ElectronicBlockEntity {
 
     public void tick() {
         if (level == null) return;
-        AtmosZone atmosZone = AtmosHandler.getAtmosInstanceAt(level, worldPosition);
+        AtmosZone atmosZone = AtmosHandler.getZoneAt(level, worldPosition);
         if (atmosZone == null) {
             if (temperature != 22) {
                 temperature = 22;

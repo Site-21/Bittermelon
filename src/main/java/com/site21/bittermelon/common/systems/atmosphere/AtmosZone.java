@@ -37,6 +37,10 @@ public class AtmosZone {
         this(id, initialTemp, initialGasses, 0);
     }
 
+    public AtmosZone(int id, int blocks) {
+        this(id, 293.15f, new ArrayList<>(), blocks);
+    }
+
     public float getTemperature() {
         return temperature;
     }

@@ -39,7 +39,7 @@ public class EnvironmentSensorBlockEntity extends ElectronicBlockEntity implemen
 
     public void tick() {
         if (level == null) return;
-        AtmosZone atmosZone = AtmosHandler.getAtmosInstanceAt(level, worldPosition.above());
+        AtmosZone atmosZone = AtmosHandler.getZoneAt(level, worldPosition.above());
         // TODO: Remove above once shape is fixed
         if (atmosZone == null) {
             if (temperature != FALLBACK_TEMPERATURE || pressure != FALLBACK_PRESSURE) {

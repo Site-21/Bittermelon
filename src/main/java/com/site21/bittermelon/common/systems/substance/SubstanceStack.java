@@ -23,37 +23,27 @@ public class SubstanceStack implements DataComponentHolder, MutableDataComponent
     public static final SubstanceStack EMPTY = new SubstanceStack(null);
     private final Substance substance;
     private int amount; // in moles
-    private float temperature; // in Kelvin
     private final PatchedDataComponentMap components;
 
-    public SubstanceStack(Substance substance, int amount, float temperature, PatchedDataComponentMap components) {
+    public SubstanceStack(Substance substance, int amount, PatchedDataComponentMap components) {
         this.substance = substance;
         this.amount = amount;
-        this.temperature = temperature;
         this.components = components;
     }
 
-    public SubstanceStack(Substance substance, int amount, float temperature) {
-        this(substance, amount, temperature, new PatchedDataComponentMap(substance.components()));
+    public SubstanceStack(Substance substance, int amount) {
+        this(substance, amount, new PatchedDataComponentMap(substance.components()));
     }
 
-    public SubstanceStack(@NotNull Holder<Substance> tag, int amount, float temperature) {
-        this(tag.value(), amount, temperature);
+    public SubstanceStack(Holder<Substance> tag, int amount) {
+        this(tag.value(), amount);
     }
 
-    public SubstanceStack(@NotNull Holder<Substance> tag, int amount) {
-        this(tag.value(), amount, 273.15f);
+    public SubstanceStack(Holder<Substance> tag, int amount, DataComponentPatch components) {
+        this(tag.value(), amount, PatchedDataComponentMap.fromPatch(tag.value().components(), components));
     }
 
-    public SubstanceStack(@NotNull Substance substance, int amount) {
-        this(substance, amount, 273.15f);
-    }
-
-    public SubstanceStack(@NotNull Holder<Substance> tag, int amount, float temperature, DataComponentPatch components) {
-        this(tag.value(), amount, temperature, PatchedDataComponentMap.fromPatch(tag.value().components(), components));
-    }
-
-    public SubstanceStack(@Nullable Void unused) {
+    public SubstanceStack(Void unused) {
         substance = null;
         components = new PatchedDataComponentMap(DataComponentMap.EMPTY);
     }
@@ -70,24 +60,12 @@ public class SubstanceStack implements DataComponentHolder, MutableDataComponent
         return amount;
     }
 
-    public float getTemperature() {
-        return temperature;
-    }
-
     public void setAmount(int amount) {
         this.amount = amount;
     }
 
-    public void setTemperature(float temperature) {
-        this.temperature = temperature;
-    }
-
     public void modifyAmount(int delta) {
         amount = Math.max(0, amount + delta);
-    }
-
-    public void modifyTemperature(float delta) {
-        temperature = Math.max(0, temperature + delta);
     }
 
     public int getVolume() {
@@ -115,7 +93,7 @@ public class SubstanceStack implements DataComponentHolder, MutableDataComponent
      * @return A copy of this SubstanceStack.
      */
     public SubstanceStack copy() {
-        return new SubstanceStack(getSubstance(), getAmount(), getTemperature(), components.copy());
+        return new SubstanceStack(getSubstance(), getAmount(), components.copy());
 
         // TODO: Uncomment when we figure out why substancestacks are empty
 //        if (this.isEmpty()) {
@@ -149,9 +127,7 @@ public class SubstanceStack implements DataComponentHolder, MutableDataComponent
         if (stack == other) {
             return true;
         } else {
-            return stack.amount == other.amount
-                    && stack.temperature == other.temperature
-                    && isSameSubstanceSameComponents(stack, other);
+            return stack.amount == other.amount && isSameSubstanceSameComponents(stack, other);
         }
     }
 
@@ -251,9 +227,6 @@ public class SubstanceStack implements DataComponentHolder, MutableDataComponent
                 ExtraCodecs.NON_NEGATIVE_INT
                         .fieldOf("amount")
                         .forGetter(SubstanceStack::getAmount),
-                ExtraCodecs.NON_NEGATIVE_FLOAT
-                        .fieldOf("temperature")
-                        .forGetter(SubstanceStack::getTemperature),
                 DataComponentPatch.CODEC
                         .optionalFieldOf("components", DataComponentPatch.EMPTY)
                         .forGetter(stack -> stack.components.asPatch())
@@ -262,7 +235,6 @@ public class SubstanceStack implements DataComponentHolder, MutableDataComponent
         STREAM_CODEC = StreamCodec.composite(
                 Substance.STREAM_CODEC, SubstanceStack::getSubstanceHolder,
                 ByteBufCodecs.INT, SubstanceStack::getAmount,
-                ByteBufCodecs.FLOAT, SubstanceStack::getTemperature,
                 DataComponentPatch.STREAM_CODEC, stack -> stack.components.asPatch(),
                 SubstanceStack::new
         );

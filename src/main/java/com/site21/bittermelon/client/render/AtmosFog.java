@@ -20,7 +20,7 @@ public class AtmosFog {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null) return null;
 
-        AtmosZone instance = AtmosHandler.getAtmosInstanceAt(mc.level, mc.player.getOnPos().above());
+        AtmosZone instance = AtmosHandler.getZoneAt(mc.level, mc.player.getOnPos().above());
         if (instance == null) return null;
 
         float fogDensity = calculateFogDensity(instance);

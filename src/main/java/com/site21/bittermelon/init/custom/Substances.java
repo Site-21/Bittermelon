@@ -16,9 +16,18 @@ import static com.site21.bittermelon.init.neoforge.BitterRegistries.SUBSTANCE_RE
 public class Substances {
     public static final DeferredRegister<Substance> SUBSTANCES = DeferredRegister.create(SUBSTANCE_REGISTRY_KEY, Bittermelon.MOD_ID);
 
+    public static final DeferredHolder<Substance, Substance> NITROGEN = SUBSTANCES.register("nitrogen", () -> new Substance(
+            "Nitrogen",
+            new Substance.Properties()
+                    .state(SubstanceState.GAS)
+                    .nature(Nature.COMBUSTIBLE, 0.5f)
+    ));
+
     public static final DeferredHolder<Substance, Substance> OXYGEN = SUBSTANCES.register("oxygen", () -> new Substance(
             "Oxygen",
-            new Substance.Properties().nature(Nature.COMBUSTIBLE, 0.5f)
+            new Substance.Properties()
+                    .state(SubstanceState.GAS)
+                    .nature(Nature.COMBUSTIBLE, 0.5f)
     ));
 
     public static final DeferredHolder<Substance, Substance> WATER = SUBSTANCES.register("water", () -> new Substance(
