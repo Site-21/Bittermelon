@@ -63,13 +63,7 @@ public class AtmosZone {
         return id;
     }
 
-    /**
-     * Adds a block to this atmosphere instance and notifies all clients of the change.
-     *
-     * @param packedPos The packed position of the block to add.
-     * @param level     The level in which the block is being added.
-     */
-    public void addBlock(Long packedPos, @NotNull Level level) {
+    public void addBlock() {
         blocks++;
     }
 

@@ -222,6 +222,7 @@ public class SubstanceCommand {
         source.sendSuccess(() -> Component.literal("Atmosphere ID: " + instance.getId()), true);
         source.sendSuccess(() -> Component.literal("Temperature: " + instance.getTemperature() + " K"), true);
         source.sendSuccess(() -> Component.literal("Pressure: " + instance.getPressure() + " kPa"), true);
+        source.sendSuccess(() -> Component.literal("Blocks: " + instance.getBlocks()), true);
 
         if (instance.getGases().isEmpty()) {
             source.sendSuccess(() -> Component.literal("No gases present"), true);

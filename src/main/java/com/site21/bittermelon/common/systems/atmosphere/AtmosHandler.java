@@ -123,6 +123,30 @@ public final class AtmosHandler {
      */
     public static void updateAtmosphere(ServerLevel level, BlockPos pos) {
         if (!level.isLoaded(pos) || level.canSeeSky(pos)) return;
+
+        BlockPos.MutableBlockPos neighbor = new BlockPos.MutableBlockPos();
+        AtmosZone largestZone = null;
+
+        for (Direction dir : Direction.values()) {
+            neighbor.setWithOffset(pos, dir);
+            if (!level.isLoaded(neighbor)) continue;
+
+            int zoneId = zoneId(level, neighbor);
+            if (zoneId != 0) {
+                AtmosZone neighborZone = AtmosZones.get(level).getAtmosInstance(zoneId);
+                if (neighborZone != null && (largestZone == null || neighborZone.getBlocks() > largestZone.getBlocks())) {
+                    largestZone = neighborZone;
+                }
+            }
+        }
+
+        if (largestZone != null) {
+            largestZone.addBlock();
+            LevelChunk chunk = level.getChunkAt(pos);
+            chunk.getData(ATMOSPHERE.get()).set(pos, largestZone.getId());
+            return;
+        }
+
         tryCreateZone(level, pos);
     }
 
