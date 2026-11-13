@@ -4,6 +4,7 @@ import com.site21.bittermelon.common.systems.atmosphere.data.AtmosChunkGrid;
 import com.site21.bittermelon.common.systems.atmosphere.data.AtmosZones;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import com.site21.bittermelon.init.neoforge.BitterBlockTags;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -151,12 +152,12 @@ public final class AtmosHandler {
     }
 
     private static void tryCreateZone(ServerLevel level, BlockPos pos) {
-        Set<BlockPos> blocks = new HashSet<>();
+        LongOpenHashSet blocks = new LongOpenHashSet();
         Queue<BlockPos> queue = new ArrayDeque<>();
-        Set<BlockPos> contacts = new HashSet<>();
+        LongOpenHashSet contacts = new LongOpenHashSet();
         boolean hasOpenCell = false;
 
-        blocks.add(pos);
+        blocks.add(pos.asLong());
         queue.add(pos);
 
         BlockPos.MutableBlockPos mutPos = new BlockPos.MutableBlockPos();
@@ -167,19 +168,19 @@ public final class AtmosHandler {
             if (isFullyOpen(state)) hasOpenCell = true;
 
             for (Direction dir : Direction.values()) {
+                if (!faceOpen(state, dir)) continue;
                 mutPos.setWithOffset(cur, dir);
 
                 if (!level.isLoaded(mutPos)) return;
-                if (!connects(level, state, mutPos, dir)) continue;
+                if (!faceOpen(level.getBlockState(mutPos), dir.getOpposite())) continue;
                 if (zoneId(level, mutPos) != 0) {
-                    contacts.add(mutPos.immutable());
+                    contacts.add(mutPos.asLong());
                     continue;
                 }
 
-                BlockPos next = mutPos.immutable();
-                if (blocks.add(next)) {
+                if (blocks.add(mutPos.asLong())) {
                     if (blocks.size() > 8192) return;
-                    queue.add(next);
+                    queue.add(mutPos.immutable());
                 }
             }
         }
@@ -192,7 +193,8 @@ public final class AtmosHandler {
         AtmosZone zone = new AtmosZone(zones.getNextId(), temperature, gases, blocks.size());
         zones.addAtmosInstance(zone);
 
-        for (BlockPos block : blocks) {
+        for (long blockLong : blocks) {
+            BlockPos block = BlockPos.of(blockLong);
             LevelChunk chunk = level.getChunkAt(block);
             chunk.getData(ATMOSPHERE.get()).set(block, zone.getId());
         }
@@ -203,10 +205,6 @@ public final class AtmosHandler {
             if (!faceOpen(state, face)) return false;
         }
         return true;
-    }
-
-    private static boolean connects(Level level, BlockState state, BlockPos neighbor, Direction direction) {
-        return faceOpen(state, direction) && faceOpen(level.getBlockState(neighbor), direction.getOpposite());
     }
 
     private static boolean faceOpen(BlockState state, Direction face) {
