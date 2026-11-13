@@ -219,6 +219,7 @@ public class SubstanceCommand {
         AtmosZone instance = requireAtmosInstance(source);
         if (instance == null) return 0;
 
+        source.sendSuccess(() -> Component.literal("Atmosphere ID: " + instance.getId()), true);
         source.sendSuccess(() -> Component.literal("Temperature: " + instance.getTemperature() + " K"), true);
         source.sendSuccess(() -> Component.literal("Pressure: " + instance.getPressure() + " kPa"), true);
 

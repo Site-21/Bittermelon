@@ -30,7 +30,7 @@ public class AtmosZone {
         this.id = id;
         this.gases = new ArrayList<>(initialGasses);
         this.temperature = initialTemp;
-        this.blocks = 0;
+        this.blocks = blocks;
     }
 
     public AtmosZone(int id, float initialTemp, List<SubstanceStack> initialGasses) {

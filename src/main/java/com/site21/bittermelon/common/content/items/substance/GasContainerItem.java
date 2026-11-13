@@ -88,7 +88,7 @@ public class GasContainerItem extends SubstanceContainerItem {
         }
     }
 
-    public void transferGas(ItemStack stack, @NotNull Level level, @NotNull Entity entity) {
+    public void transferGas(ItemStack stack, @NotNull ServerLevel level, @NotNull Entity entity) {
         if (level.isClientSide()) return;
 
         AtmosZone atmosZone = AtmosHandler.getZoneAt(level, entity.getOnPos());

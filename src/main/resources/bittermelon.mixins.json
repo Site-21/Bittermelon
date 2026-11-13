@@ -10,6 +10,7 @@
     "ItemMixin",
     "LivingEntityMixin",
     "PlayerMixin",
+    "ServerLevelMixin",
     "StyleMixin",
     "StyleSerializerMixin"
   ],

@@ -14,7 +14,7 @@ public class FogRenderer {
     private static final List<Supplier<Fog>> SOURCES = new ArrayList<>();
 
     public static void register() {
-        SOURCES.add(AtmosFog::getAtmosFog);
+//        SOURCES.add(AtmosFog::getAtmosFog);
         SOURCES.add(FogRenderer::getAmnesiaFog);
     }
 

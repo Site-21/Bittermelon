@@ -5,6 +5,7 @@ import com.site21.bittermelon.common.content.entities.scp939.behavior.SweepArea;
 import com.site21.bittermelon.common.content.items.clownhammer.ClownHammer;
 import com.site21.bittermelon.common.content.items.scps.scp377.FortuneHandler;
 import com.site21.bittermelon.common.physics.PhysicsManager;
+import com.site21.bittermelon.common.systems.atmosphere.data.AtmosZones;
 import com.site21.bittermelon.common.systems.blockdamage.BlockDamageUtil;
 import com.site21.bittermelon.common.systems.carry.CarryHandler;
 import com.site21.bittermelon.common.systems.character.Character;
@@ -158,10 +159,12 @@ public class CommonEvents {
 
     @SubscribeEvent
     public static void onLevelTick(LevelTickEvent.Post event) {
-        if (event.getLevel() instanceof ServerLevel serverLevel) {
-            if (serverLevel.tickRateManager().runsNormally()) {
-                PhysicsManager.updatePhysicsLevel(event.getLevel());
+        if (event.getLevel() instanceof ServerLevel level) {
+            if (level.tickRateManager().runsNormally()) {
+                PhysicsManager.updatePhysicsLevel(level);
             }
+
+            AtmosZones.get(level).tick(level);
         }
     }
 

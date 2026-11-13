@@ -13,8 +13,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +35,7 @@ public final class AtmosHandler {
         LevelChunk chunk = level.getChunkAt(pos);
         AtmosChunkGrid data = chunk.getData(ATMOSPHERE.get());
 
-        return null;
+        return AtmosZones.get(level).getAtmosInstance(data.get(pos));
     }
 
     public static int zoneId(Level level, BlockPos pos) {
@@ -45,27 +45,16 @@ public final class AtmosHandler {
         return data.get(pos);
     }
 
-    /**
-     * Updates the atmosphere at the given position and its adjacent blocks.
-     *
-     * @param level The level in which to update the atmosphere.
-     * @param pos   The position at which to update the atmosphere.
-     */
-    public static void updateAtmosphereAt(@NotNull Level level, @NotNull BlockPos pos) {
-        if (level.isClientSide()) return;
+    public static void onBlockStateChange(ServerLevel level, BlockPos pos, BlockState oldState, BlockState newState) {
+        if (!sealingChanged(oldState, newState)) return;
+        AtmosZones.get(level).addPending(pos);
+    }
 
-        BlockPos.MutableBlockPos mutableBlockPos = new BlockPos.MutableBlockPos(pos.getX(), pos.getY(), pos.getZ());
-        Set<AtmosZone> updatedInstances = new HashSet<>();
-
-        for (Direction direction : DIRECTIONS) {
-            mutableBlockPos.move(direction);
-
-            if (getZoneAt(level, mutableBlockPos) instanceof AtmosZone atmosZone
-                    && !updatedInstances.contains(atmosZone)) {
-                updateAtmosphere(level, mutableBlockPos.immutable(), atmosZone);
-                updatedInstances.add(atmosZone);
-            }
+    private static boolean sealingChanged(BlockState oldState, BlockState newState) {
+        for (Direction face : DIRECTIONS) {
+            if (faceOpen(oldState, face) != faceOpen(newState, face)) return true;
         }
+        return false;
     }
 
     /**
@@ -87,7 +76,7 @@ public final class AtmosHandler {
      * @param pos   The position at which to release the gas.
      * @param gas   The gas to release.
      */
-    public static void releaseGas(@NotNull Level level, BlockPos pos, @NotNull SubstanceStack gas) {
+    public static void releaseGas(@NotNull ServerLevel level, BlockPos pos, @NotNull SubstanceStack gas) {
         if (level.isClientSide()) return;
 
         AtmosZone instance = getZoneAt(level, pos);
@@ -106,7 +95,7 @@ public final class AtmosHandler {
      * @param pos   The position at which to release the gases.
      * @param gases The list of gases to release.
      */
-    public static void releaseGas(Level level, BlockPos pos, @NotNull List<SubstanceStack> gases) {
+    public static void releaseGas(ServerLevel level, BlockPos pos, @NotNull List<SubstanceStack> gases) {
         for (SubstanceStack stack : gases) {
             releaseGas(level, pos, stack);
         }
@@ -120,9 +109,9 @@ public final class AtmosHandler {
      * @param temperature The temperature of the atmosphere instance.
      * @param gasses      The list of gases in the atmosphere instance.
      */
-    public static void addAtmosphere(@NotNull Level level, BlockPos startPos, float temperature, List<SubstanceStack> gasses) {
+    public static void addAtmosphere(@NotNull ServerLevel level, BlockPos startPos, float temperature, List<SubstanceStack> gasses) {
         AtmosZone newInstance = new AtmosZone(0, temperature, gasses);
-        updateAtmosphere(level, startPos, newInstance);
+        updateAtmosphere(level, startPos);
         AtmosZones.get(level).addAtmosInstance(newInstance);
     }
 
@@ -131,14 +120,13 @@ public final class AtmosHandler {
      *
      * @param level     The level in which to update the atmosphere.
      * @param pos       The starting position for the flood fill.
-     * @param atmosZone The atmosphere instance to update.
      */
-    public static void updateAtmosphere(@NotNull Level level, BlockPos pos, AtmosZone atmosZone) {
+    public static void updateAtmosphere(ServerLevel level, BlockPos pos) {
         if (!level.isLoaded(pos) || level.canSeeSky(pos)) return;
         tryCreateZone(level, pos);
     }
 
-    private static void tryCreateZone(Level level, BlockPos pos) {
+    private static void tryCreateZone(ServerLevel level, BlockPos pos) {
         Set<BlockPos> blocks = new HashSet<>();
         Queue<BlockPos> queue = new ArrayDeque<>();
         Set<BlockPos> contacts = new HashSet<>();
@@ -150,27 +138,33 @@ public final class AtmosHandler {
         BlockPos.MutableBlockPos mutPos = new BlockPos.MutableBlockPos();
         while (!queue.isEmpty()) {
             BlockPos cur = queue.poll();
-            if (level.canSeeSky(cur)) break;
-            if (isFullyOpen(level, cur)) hasOpenCell = true;
+            if (level.canSeeSky(cur)) return;
+            BlockState state = level.getBlockState(cur);
+            if (isFullyOpen(state)) hasOpenCell = true;
+
             for (Direction dir : Direction.values()) {
                 mutPos.setWithOffset(cur, dir);
-                if (!level.isLoaded(mutPos)) break;
-                if (!connects(level, level.getBlockState(cur), mutPos, dir)) continue;
+
+                if (!level.isLoaded(mutPos)) return;
+                if (!connects(level, state, mutPos, dir)) continue;
                 if (zoneId(level, mutPos) != 0) {
                     contacts.add(mutPos.immutable());
                     continue;
                 }
+
                 BlockPos next = mutPos.immutable();
-                blocks.add(next);
-                if (blocks.size() > 8192) break;
-                queue.add(next);
+                if (blocks.add(next)) {
+                    if (blocks.size() > 8192) return;
+                    queue.add(next);
+                }
             }
         }
         if (!hasOpenCell) return;
 
-        AtmosZones zones = AtmosZones.get(level);
         float temperature = temperature(level, pos);
         List<SubstanceStack> gases = airGases(temperature, blocks.size());
+
+        AtmosZones zones = AtmosZones.get(level);
         AtmosZone zone = new AtmosZone(zones.getNextId(), temperature, gases, blocks.size());
         zones.addAtmosInstance(zone);
 
@@ -180,11 +174,11 @@ public final class AtmosHandler {
         }
     }
 
-    private static boolean isFullyOpen(Level level, BlockPos pos) {
-        BlockState state = level.getBlockState(pos);
-        if (state.isAir()) return true;
-        if (state.is(BitterBlockTags.PASSES_ATMOS)) return true;
-        return !state.isCollisionShapeFullBlock(level, pos);
+    private static boolean isFullyOpen(BlockState state) {
+        for (Direction face : DIRECTIONS) {
+            if (!faceOpen(state, face)) return false;
+        }
+        return true;
     }
 
     private static boolean connects(Level level, BlockState state, BlockPos neighbor, Direction direction) {
@@ -193,8 +187,26 @@ public final class AtmosHandler {
 
     private static boolean faceOpen(BlockState state, Direction face) {
         if (state.isAir() || state.is(BitterBlockTags.PASSES_ATMOS)) return true;
+        if (state.isCollisionShapeFullBlock(EmptyBlockGetter.INSTANCE, BlockPos.ZERO)) return false;
+
         VoxelShape shape = state.getCollisionShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
-        return !Block.isFaceFull(shape, face);
+        if (shape.isEmpty()) return true;
+
+        // TODO: maybe this should be cached
+        Direction.Axis axis = face.getAxis();
+        VoxelShape projected = Shapes.empty();
+        for (AABB box : shape.toAabbs()) {
+            projected = Shapes.or(projected, Shapes.create(
+                    axis == Direction.Axis.X ? 0 : box.minX,
+                    axis == Direction.Axis.Y ? 0 : box.minY,
+                    axis == Direction.Axis.Z ? 0 : box.minZ,
+                    axis == Direction.Axis.X ? 1 : box.maxX,
+                    axis == Direction.Axis.Y ? 1 : box.maxY,
+                    axis == Direction.Axis.Z ? 1 : box.maxZ)
+            );
+        }
+
+        return !Block.isFaceFull(projected, face);
     }
 
     private static float temperature(Level level, BlockPos pos) {

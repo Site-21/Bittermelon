@@ -58,11 +58,11 @@ public class Substance {
     }
 
     /**
-     * Creates a SubstanceStack with 1 mole and temperature of 273.15K.
+     * Creates a SubstanceStack with 1 mole.
      * @return A new SubstanceStack instance.
      */
     public SubstanceStack toStack() {
-        return new SubstanceStack(this, 1, 273.15f);
+        return new SubstanceStack(this, 1);
     }
 
     public String getName() {
