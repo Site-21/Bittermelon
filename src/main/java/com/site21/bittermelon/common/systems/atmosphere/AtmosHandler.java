@@ -4,6 +4,7 @@ import com.site21.bittermelon.common.systems.atmosphere.data.AtmosChunkGrid;
 import com.site21.bittermelon.common.systems.atmosphere.data.AtmosZones;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import com.site21.bittermelon.init.neoforge.BitterBlockTags;
+import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -36,7 +37,7 @@ public final class AtmosHandler {
         LevelChunk chunk = level.getChunkAt(pos);
         AtmosChunkGrid data = chunk.getData(ATMOSPHERE.get());
 
-        return AtmosZones.get(level).getAtmosInstance(data.get(pos));
+        return AtmosZones.get(level).getZone(data.get(pos));
     }
 
     public static int zoneId(Level level, BlockPos pos) {
@@ -44,6 +45,13 @@ public final class AtmosHandler {
         AtmosChunkGrid data = chunk.getData(ATMOSPHERE.get());
 
         return data.get(pos);
+    }
+
+    public static void setZoneId(Level level, BlockPos pos, int zoneId) {
+        LevelChunk chunk = level.getChunkAt(pos);
+        AtmosChunkGrid data = chunk.getData(ATMOSPHERE.get());
+
+        data.set(pos, zoneId);
     }
 
     public static void onBlockStateChange(ServerLevel level, BlockPos pos, BlockState oldState, BlockState newState) {
@@ -65,7 +73,7 @@ public final class AtmosHandler {
      * @param instance The atmosphere instance to remove.
      */
     public static void removeAtmosphere(@NotNull Level level, @NotNull AtmosZone instance) {
-        AtmosZones.get(level).removeAtmosInstance(instance.getId());
+        AtmosZones.get(level).removeZone(instance.getId());
     }
 
     /**
@@ -126,15 +134,44 @@ public final class AtmosHandler {
         if (!level.isLoaded(pos) || level.canSeeSky(pos)) return;
 
         BlockPos.MutableBlockPos neighbor = new BlockPos.MutableBlockPos();
+        int zoneId = zoneId(level, pos);
+        if (zoneId != 0 && !isFullyOpen(level.getBlockState(pos))) {
+            removeAtmos(level, pos, neighbor, zoneId);
+        } else {
+            expandAtmos(level, pos, neighbor);
+        }
+    }
+
+    private static void removeAtmos(ServerLevel level, BlockPos pos, BlockPos.MutableBlockPos mutPos, int zoneId) {
+        AtmosZone zone = AtmosZones.get(level).getZone(zoneId);
+        zone.removeBlock();
+        setZoneId(level, pos, 0);
+
+        List<BlockPos> formerNeighbors = new ArrayList<>();
+        for (Direction dir : Direction.values()) {
+            mutPos.setWithOffset(pos, dir);
+            if (!level.isLoaded(mutPos)) continue;
+
+            int neighborZoneId = zoneId(level, mutPos);
+            if (neighborZoneId == zoneId) {
+                formerNeighbors.add(mutPos.immutable());
+            }
+        }
+
+        trySplitZone(level, formerNeighbors, zone, zoneId);
+    }
+
+    private static void expandAtmos(ServerLevel level, BlockPos pos, BlockPos.MutableBlockPos mutPos) {
         AtmosZone largestZone = null;
 
         for (Direction dir : Direction.values()) {
-            neighbor.setWithOffset(pos, dir);
-            if (!level.isLoaded(neighbor)) continue;
+            mutPos.setWithOffset(pos, dir);
+            if (!level.isLoaded(mutPos)) continue;
 
-            int zoneId = zoneId(level, neighbor);
+            // TODO: Dissolve zones if one of neighbors has id 0
+            int zoneId = zoneId(level, mutPos);
             if (zoneId != 0) {
-                AtmosZone neighborZone = AtmosZones.get(level).getAtmosInstance(zoneId);
+                AtmosZone neighborZone = AtmosZones.get(level).getZone(zoneId);
                 if (neighborZone != null && (largestZone == null || neighborZone.getBlocks() > largestZone.getBlocks())) {
                     largestZone = neighborZone;
                 }
@@ -185,19 +222,7 @@ public final class AtmosHandler {
             }
         }
         if (!hasOpenCell) return;
-
-        float temperature = temperature(level, pos);
-        List<SubstanceStack> gases = airGases(temperature, blocks.size());
-
-        AtmosZones zones = AtmosZones.get(level);
-        AtmosZone zone = new AtmosZone(zones.getNextId(), temperature, gases, blocks.size());
-        zones.addAtmosInstance(zone);
-
-        for (long blockLong : blocks) {
-            BlockPos block = BlockPos.of(blockLong);
-            LevelChunk chunk = level.getChunkAt(block);
-            chunk.getData(ATMOSPHERE.get()).set(block, zone.getId());
-        }
+        createZone(level, blocks, pos);
     }
 
     private static boolean isFullyOpen(BlockState state) {
@@ -237,9 +262,95 @@ public final class AtmosHandler {
 
     private static List<SubstanceStack> airGases(float temperature, int blocks) {
         float molesPerBlock = 101.325f * 1000 / (GAS_CONSTANT * temperature);
-        return List.of(
-                new SubstanceStack(NITROGEN.get(), (int) (molesPerBlock * 0.79f * blocks)),
-                new SubstanceStack(OXYGEN.get(), (int) (molesPerBlock * 0.21f * blocks))
-        );
+        return List.of(new SubstanceStack(NITROGEN.get(), (int) (molesPerBlock * 0.79f * blocks)), new SubstanceStack(OXYGEN.get(), (int) (molesPerBlock * 0.21f * blocks)));
+    }
+
+    private static void trySplitZone(ServerLevel level, List<BlockPos> neighbors, AtmosZone zone, int zoneId) {
+        Long2IntOpenHashMap visited = new Long2IntOpenHashMap();
+        visited.defaultReturnValue(-1);
+        List<LongOpenHashSet> blocks = new ArrayList<>();
+        List<Queue<BlockPos>> queues = new ArrayList<>();
+        int active = 0;
+
+        for (int i = 0; i < neighbors.size(); i++) {
+            BlockPos start = neighbors.get(i);
+            long key = start.asLong();
+            visited.put(key, i);
+
+            LongOpenHashSet blockSet = new LongOpenHashSet();
+            blockSet.add(key);
+            blocks.add(blockSet);
+
+            Queue<BlockPos> queue = new ArrayDeque<>();
+            queue.add(start);
+            queues.add(queue);
+
+            active++;
+        }
+
+        while (active > 1) {
+            for (int i = 0; i < queues.size() && active > 1; i++) {
+                Queue<BlockPos> queue = queues.get(i);
+                if (queue == null) continue;
+
+                BlockPos cur = queue.poll();
+                if (cur == null) {
+                    zone.removeBlocks(blocks.get(i).size());
+                    createZone(level, blocks.get(i), neighbors.get(i));
+                    queues.set(i, null);
+                    active--;
+                    continue;
+                }
+
+                for (Direction dir : Direction.values()) {
+                    BlockPos next = cur.relative(dir);
+                    if (!level.isLoaded(next) || zoneId(level, next) != zoneId) continue;
+
+                    long key = next.asLong();
+                    int owner = visited.get(key);
+
+                    if (owner == -1) {
+                        visited.put(key, i);
+                        blocks.get(i).add(key);
+                        queue.add(next);
+                    } else if (owner != i) {
+                        int from = blocks.get(i).size() < blocks.get(owner).size() ? i : owner;
+                        int to = (from == i) ? owner : i;
+
+                        for (long block : blocks.get(from)) {
+                            visited.put(block, to);
+                        }
+
+                        blocks.get(to).addAll(blocks.get(from));
+                        queues.get(to).addAll(queues.get(from));
+                        blocks.set(from, null);
+                        queues.set(from, null);
+                        active--;
+
+                        if (from == i) {
+                            queues.get(to).add(cur);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static void createZone(ServerLevel level, LongOpenHashSet blocks, BlockPos origin) {
+        if (blocks.isEmpty()) return;
+
+        float temperature = temperature(level, origin);
+        List<SubstanceStack> gases = airGases(temperature, blocks.size());
+
+        AtmosZones zones = AtmosZones.get(level);
+        AtmosZone zone = new AtmosZone(zones.getNextId(), temperature, gases, blocks.size());
+        zones.addAtmosInstance(zone);
+
+        for (long blockLong : blocks) {
+            BlockPos block = BlockPos.of(blockLong);
+            LevelChunk chunk = level.getChunkAt(block);
+            chunk.getData(ATMOSPHERE.get()).set(block, zone.getId());
+        }
     }
 }

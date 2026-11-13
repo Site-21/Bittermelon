@@ -28,7 +28,7 @@ public class AtmosZones extends SavedData {
     }
 
     public AtmosZones() {
-        this(new HashMap<>(), 0);
+        this(new HashMap<>(), 1);
     }
 
     public static AtmosZones get(Level level) {
@@ -40,10 +40,16 @@ public class AtmosZones extends SavedData {
 
     public void tick(ServerLevel level) {
         int processed = 0;
+        boolean dirty = false;
         while (!pending.isEmpty() && processed < 64) {
             BlockPos pos = BlockPos.of(pending.removeFirstLong());
             AtmosHandler.updateAtmosphere(level, pos);
             processed++;
+            dirty = true;
+        }
+
+        if (dirty) {
+            setDirty();
         }
     }
 
@@ -55,22 +61,20 @@ public class AtmosZones extends SavedData {
         return zones;
     }
 
-    public AtmosZone getAtmosInstance(int id) {
+    public AtmosZone getZone(int id) {
         return zones.get(id);
     }
 
     public void addAtmosInstance(AtmosZone instance) {
         zones.put(instance.getId(), instance);
-        setDirty();
     }
 
     public int getNextId() {
         return nextId++;
     }
 
-    public void removeAtmosInstance(int uuid) {
-        zones.remove(uuid);
-        setDirty();
+    public void removeZone(int id) {
+        zones.remove(id);
     }
 
     private static AtmosZones fromList(List<AtmosZone> list, int nextId) {

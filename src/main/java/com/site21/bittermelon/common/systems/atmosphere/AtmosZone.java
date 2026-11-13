@@ -67,14 +67,12 @@ public class AtmosZone {
         blocks++;
     }
 
-    /**
-     * Removes a block from this atmosphere instance and notifies all clients of the change.
-     *
-     * @param packedPos The packed position of the block to remove.
-     * @param level     The level in which the block is being removed.
-     */
-    public void removeBlock(Long packedPos, @NotNull Level level) {
+    public void removeBlock() {
         blocks--;
+    }
+
+    public void removeBlocks(int count) {
+        blocks -= count;
     }
 
     /**
