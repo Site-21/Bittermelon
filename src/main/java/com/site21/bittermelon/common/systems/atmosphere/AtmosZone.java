@@ -9,6 +9,7 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import static com.site21.bittermelon.util.SubstanceUtil.GAS_CONSTANT;
@@ -94,17 +95,21 @@ public class AtmosZone {
         this.temperature = temperature;
     }
 
-    /**
-     * Merges another atmosphere instance into this one, averaging temperatures and combining gases.
-     * Notifies all clients of the changes.
-     *
-     * @param other The other atmosphere instance to merge.
-     * @param level The level in which the merge is occurring.
-     */
-    public void merge(@NotNull AtmosZone other, Level level) {
-        setTemperature((temperature + other.getTemperature()) / 2, level);
-        for (SubstanceStack gas : other.gases) {
-            updateGas(gas, level);
+    public void setGases(List<SubstanceStack> gases) {
+        this.gases.clear();
+        this.gases.addAll(gases);
+    }
+
+    public void multiplyGases(float factor) {
+        Iterator<SubstanceStack> it = gases.iterator();
+        while (it.hasNext()) {
+            SubstanceStack stack = it.next();
+            int newAmount = Math.round(stack.getAmount() * factor);
+            if (newAmount <= 0) {
+                it.remove();
+            } else {
+                stack.setAmount(newAmount);
+            }
         }
     }
 

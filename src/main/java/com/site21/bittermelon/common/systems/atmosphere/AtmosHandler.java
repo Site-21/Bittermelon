@@ -4,6 +4,7 @@ import com.site21.bittermelon.common.systems.atmosphere.data.AtmosChunkGrid;
 import com.site21.bittermelon.common.systems.atmosphere.data.AtmosZones;
 import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import com.site21.bittermelon.init.neoforge.BitterBlockTags;
+import com.site21.bittermelon.util.SubstanceUtil;
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
@@ -240,7 +241,10 @@ public final class AtmosHandler {
             }
         }
         if (!hasOpenCell) return;
-        createZone(level, blocks, pos);
+
+        float temperature = temperature(level, pos);
+        List<SubstanceStack> gases = airGases(temperature, blocks.size());
+        createZone(level, blocks, gases, temperature);
     }
 
     private static boolean isFullyOpen(BlockState state) {
@@ -294,6 +298,8 @@ public final class AtmosHandler {
         Queue<BlockPos>[] queues = new Queue[neighbors.size()];
         boolean[] unloaded = new boolean[neighbors.size()];
         int active = 0;
+        float lostShare = 0;
+        int lostSize = 0;
 
         for (int i = 0; i < neighbors.size(); i++) {
             BlockPos start = neighbors.get(i);
@@ -323,8 +329,11 @@ public final class AtmosHandler {
                 if (cur == null) {
                     // it's not guaranteed that an unloaded chunk is split, so we just assume that it is not
                     if (!unloaded[i]) {
-                        zone.removeBlocks(blocks[i].size());
-                        createZone(level, blocks[i], neighbors.get(i));
+                        lostSize += blocks[i].size();
+                        float share = blocks[i].size() / (float) zone.getBlocks();
+                        lostShare += share;
+                        List<SubstanceStack> gases = SubstanceUtil.spreadSubstancesByPercentage(zone.getGases(), zone.getBlocks(), share);
+                        createZone(level, blocks[i], gases, zone.getTemperature());
                     }
                     queues[i] = null;
                     active--;
@@ -376,13 +385,13 @@ public final class AtmosHandler {
                 }
             }
         }
+
+        zone.removeBlocks(lostSize);
+        zone.multiplyGases(1 - lostShare);
     }
 
-    private static void createZone(ServerLevel level, LongOpenHashSet blocks, BlockPos origin) {
+    private static void createZone(ServerLevel level, LongOpenHashSet blocks, List<SubstanceStack> gases, float temperature) {
         if (blocks.isEmpty()) return;
-
-        float temperature = temperature(level, origin);
-        List<SubstanceStack> gases = airGases(temperature, blocks.size());
 
         AtmosZones zones = AtmosZones.get(level);
         AtmosZone zone = new AtmosZone(zones.getNextId(), temperature, gases, blocks.size());
