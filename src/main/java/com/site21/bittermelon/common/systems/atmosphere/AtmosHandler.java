@@ -142,14 +142,11 @@ public final class AtmosHandler {
             removeAtmos(level, pos, mutPos, oldId);
         }
 
-        boolean isOpen = isFullyOpen(state);
-        if (isOpen) {
-            // first, expand the atmosphere to the largest neighboring zone if one exists
-            expandAtmos(level, pos, mutPos);
-        }
+        // first, expand the atmosphere to the largest neighboring zone if one exists
+        expandAtmos(level, pos, mutPos, state);
 
-        if (isOpen && zoneId(level, pos) == 0) {
-            // if the block is open and not part of a zone, try to create a new zone
+        // if the block is not part of a zone still, try to create a new zone
+        if (zoneId(level, pos) == 0) {
             tryCreateZone(level, pos);
         }
 
@@ -158,7 +155,6 @@ public final class AtmosHandler {
             mutPos.setWithOffset(pos, dir);
             if (!level.isLoaded(mutPos)) continue;
             if (zoneId(level, mutPos) != 0) continue;
-            if (!isFullyOpen(level.getBlockState(mutPos))) continue;
             tryCreateZone(level, mutPos.immutable());
         }
     }
@@ -182,12 +178,14 @@ public final class AtmosHandler {
         trySplitZone(level, formerNeighbors, zone, zoneId);
     }
 
-    private static void expandAtmos(ServerLevel level, BlockPos pos, BlockPos.MutableBlockPos mutPos) {
+    private static void expandAtmos(ServerLevel level, BlockPos pos, BlockPos.MutableBlockPos mutPos, BlockState state) {
         AtmosZone largestZone = null;
 
         for (Direction dir : Direction.values()) {
+            if (!faceOpen(state, dir)) continue;
             mutPos.setWithOffset(pos, dir);
             if (!level.isLoaded(mutPos)) continue;
+            if (!faceOpen(level.getBlockState(mutPos), dir.getOpposite())) continue;
 
             // TODO: Dissolve zones if one of neighbors has id 0
             int zoneId = zoneId(level, mutPos);
@@ -208,6 +206,8 @@ public final class AtmosHandler {
     }
 
     private static void tryCreateZone(ServerLevel level, BlockPos pos) {
+        if (!openAnywhere(level.getBlockState(pos))) return;
+
         LongOpenHashSet blocks = new LongOpenHashSet();
         Queue<BlockPos> queue = new ArrayDeque<>();
         LongOpenHashSet contacts = new LongOpenHashSet();
@@ -220,8 +220,10 @@ public final class AtmosHandler {
         while (!queue.isEmpty()) {
             BlockPos cur = queue.poll();
             if (isUnderOpenSky(level, cur)) return;
+
             BlockState state = level.getBlockState(cur);
-            if (isFullyOpen(state)) hasOpenCell = true;
+            // this prevents creating pockets in partly open areas like doors
+            if (fullyOpen(state)) hasOpenCell = true;
 
             for (Direction dir : Direction.values()) {
                 if (!faceOpen(state, dir)) continue;
@@ -240,6 +242,7 @@ public final class AtmosHandler {
                 }
             }
         }
+
         if (!hasOpenCell) return;
 
         float temperature = temperature(level, pos);
@@ -247,11 +250,18 @@ public final class AtmosHandler {
         createZone(level, blocks, gases, temperature);
     }
 
-    private static boolean isFullyOpen(BlockState state) {
+    private static boolean fullyOpen(BlockState state) {
         for (Direction face : DIRECTIONS) {
             if (!faceOpen(state, face)) return false;
         }
         return true;
+    }
+
+    private static boolean openAnywhere(BlockState state) {
+        for (Direction face : DIRECTIONS) {
+            if (faceOpen(state, face)) return true;
+        }
+        return false;
     }
 
     private static boolean faceOpen(BlockState state, Direction face) {
@@ -375,12 +385,12 @@ public final class AtmosHandler {
                         queues[from] = null;
                         active--;
 
+                        unloaded[to] = unloaded[to] || unloaded[from];
+
                         if (from == i) {
                             queues[to].add(cur);
                             break;
                         }
-
-                        unloaded[to] = unloaded[to] || unloaded[from];
                     }
                 }
             }
