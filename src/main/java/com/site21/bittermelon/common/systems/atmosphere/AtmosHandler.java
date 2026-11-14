@@ -53,6 +53,7 @@ public final class AtmosHandler {
         AtmosChunkGrid data = chunk.getData(ATMOSPHERE.get());
 
         data.set(pos, zoneId);
+        chunk.markUnsaved();
     }
 
     public static void onBlockStateChange(ServerLevel level, BlockPos pos, BlockState oldState, BlockState newState) {
@@ -128,8 +129,8 @@ public final class AtmosHandler {
     /**
      * Updates the atmosphere starting from the specified position using a flood fill algorithm.
      *
-     * @param level     The level in which to update the atmosphere.
-     * @param pos       The starting position for the flood fill.
+     * @param level The level in which to update the atmosphere.
+     * @param pos   The starting position for the flood fill.
      */
     public static void updateAtmosphere(ServerLevel level, BlockPos pos) {
         if (!level.isLoaded(pos)) return;
@@ -142,14 +143,17 @@ public final class AtmosHandler {
 
         boolean isOpen = isFullyOpen(state);
         if (isOpen) {
+            // first, expand the atmosphere to the largest neighboring zone if one exists
             expandAtmos(level, pos, mutPos);
         }
 
         if (isOpen && zoneId(level, pos) == 0) {
+            // if the block is open and not part of a zone, try to create a new zone
             tryCreateZone(level, pos);
         }
 
         for (Direction dir : DIRECTIONS) {
+            // creates zones in a newly sealed area
             mutPos.setWithOffset(pos, dir);
             if (!level.isLoaded(mutPos)) continue;
             if (zoneId(level, mutPos) != 0) continue;
@@ -198,6 +202,7 @@ public final class AtmosHandler {
             largestZone.addBlock();
             LevelChunk chunk = level.getChunkAt(pos);
             chunk.getData(ATMOSPHERE.get()).set(pos, largestZone.getId());
+            chunk.markUnsaved();
         }
     }
 
@@ -287,6 +292,7 @@ public final class AtmosHandler {
         visited.defaultReturnValue(-1);
         LongOpenHashSet[] blocks = new LongOpenHashSet[neighbors.size()];
         Queue<BlockPos>[] queues = new Queue[neighbors.size()];
+        boolean[] unloaded = new boolean[neighbors.size()];
         int active = 0;
 
         for (int i = 0; i < neighbors.size(); i++) {
@@ -305,32 +311,48 @@ public final class AtmosHandler {
             active++;
         }
 
+        BlockPos.MutableBlockPos mutPos = new BlockPos.MutableBlockPos();
         while (active > 1) {
+            // process each neighbor in sequence and merge them if they collide
             for (int i = 0; i < queues.length && active > 1; i++) {
                 Queue<BlockPos> queue = queues[i];
                 if (queue == null) continue;
 
                 BlockPos cur = queue.poll();
+                // if a neighbor has no more blocks, it means that it is a split zone
                 if (cur == null) {
-                    zone.removeBlocks(blocks[i].size());
-                    createZone(level, blocks[i], neighbors.get(i));
+                    // it's not guaranteed that an unloaded chunk is split, so we just assume that it is not
+                    if (!unloaded[i]) {
+                        zone.removeBlocks(blocks[i].size());
+                        createZone(level, blocks[i], neighbors.get(i));
+                    }
                     queues[i] = null;
                     active--;
                     continue;
                 }
 
+                BlockState state = level.getBlockState(cur);
                 for (Direction dir : Direction.values()) {
-                    BlockPos next = cur.relative(dir);
-                    if (!level.isLoaded(next) || zoneId(level, next) != zoneId) continue;
+                    if (!faceOpen(state, dir)) continue;
+                    mutPos.setWithOffset(cur, dir);
 
-                    long key = next.asLong();
+                    if (!level.isLoaded(mutPos)) {
+                        unloaded[i] = true;
+                        continue;
+                    }
+                    if (zoneId(level, mutPos) != zoneId) continue;
+                    if (!faceOpen(level.getBlockState(mutPos), dir.getOpposite())) continue;
+
+                    long key = mutPos.asLong();
                     int owner = visited.get(key);
 
                     if (owner == -1) {
+                        // unvisited block
                         visited.put(key, i);
                         blocks[i].add(key);
-                        queue.add(next);
+                        queue.add(mutPos.immutable());
                     } else if (owner != i) {
+                        // visited block from another neighbor, merge the smaller neighbor into the larger one
                         int from = blocks[i].size() < blocks[owner].size() ? i : owner;
                         int to = (from == i) ? owner : i;
 
@@ -348,6 +370,8 @@ public final class AtmosHandler {
                             queues[to].add(cur);
                             break;
                         }
+
+                        unloaded[to] = unloaded[to] || unloaded[from];
                     }
                 }
             }
@@ -366,13 +390,11 @@ public final class AtmosHandler {
 
         for (long blockLong : blocks) {
             BlockPos block = BlockPos.of(blockLong);
-            LevelChunk chunk = level.getChunkAt(block);
-            chunk.getData(ATMOSPHERE.get()).set(block, zone.getId());
+            setZoneId(level, block, zone.getId());
         }
     }
 
     private static boolean isUnderOpenSky(Level level, BlockPos pos) {
         return pos.getY() >= level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.getX(), pos.getZ());
     }
-
 }
