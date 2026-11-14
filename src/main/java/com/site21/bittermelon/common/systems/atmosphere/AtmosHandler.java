@@ -32,14 +32,28 @@ import static com.site21.bittermelon.util.SubstanceUtil.GAS_CONSTANT;
 public final class AtmosHandler {
     private static final Direction[] DIRECTIONS = Direction.values();
 
-    /**
-     * Private constructor to prevent instantiation.
-     */
-    public static @Nullable AtmosZone getZoneAt(@NotNull Level level, BlockPos pos) {
-        LevelChunk chunk = level.getChunkAt(pos);
-        AtmosChunkGrid data = chunk.getData(ATMOSPHERE.get());
+    public static @Nullable AtmosZone getZoneAt(Level level, BlockPos pos) {
+        AtmosZones zones = AtmosZones.get(level);
+        int id = zoneId(level, pos);
+        if (id != 0) return zones.getZone(id);
 
-        return AtmosZones.get(level).getZone(data.get(pos));
+        BlockState state = level.getBlockState(pos);
+        if (!openAnywhere(state)) return null;
+
+        VoxelShape shape = state.getCollisionShape(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);
+        BlockPos.MutableBlockPos mutPos = new BlockPos.MutableBlockPos();
+        for (Direction dir : DIRECTIONS) {
+            if (Block.isFaceFull(shape.getFaceShape(dir), dir)) continue;
+            mutPos.setWithOffset(pos, dir);
+            if (!level.isLoaded(mutPos)) continue;
+
+            int neighborId = zoneId(level, mutPos);
+            if (neighborId != 0 && faceOpen(level.getBlockState(mutPos), dir.getOpposite())) {
+                return zones.getZone(neighborId);
+            }
+        }
+
+        return null;
     }
 
     public static int zoneId(Level level, BlockPos pos) {
@@ -58,6 +72,7 @@ public final class AtmosHandler {
     }
 
     public static void onBlockStateChange(ServerLevel level, BlockPos pos, BlockState oldState, BlockState newState) {
+        if (!level.getServer().isSameThread()) return;
         if (!sealingChanged(oldState, newState)) return;
         AtmosZones.get(level).addPending(pos);
     }
