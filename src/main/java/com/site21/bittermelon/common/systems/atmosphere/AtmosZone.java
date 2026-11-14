@@ -56,7 +56,7 @@ public class AtmosZone {
      */
     public float getPressure() {
         if (blocks == 0) return 0;
-        return SubstanceUtil.getTotalVolume(gases) * GAS_CONSTANT * temperature / (blocks * 1000);
+        return SubstanceUtil.getTotalAmount(gases) * GAS_CONSTANT * temperature / (blocks * 1000);
     }
 
     public int getId() {

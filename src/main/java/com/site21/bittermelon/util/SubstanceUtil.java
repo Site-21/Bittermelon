@@ -30,6 +30,12 @@ public final class SubstanceUtil {
                 .reduce(0, Integer::sum);
     }
 
+    public static int getTotalAmount(@NotNull List<SubstanceStack> substances) {
+        return substances.stream()
+                .map(SubstanceStack::getAmount)
+                .reduce(0, Integer::sum);
+    }
+
     /**
      * Calculate the pressure of an ideal gas using the Ideal Gas Law: Point = nRT/V
      * @param substances the list of SubstanceStacks
@@ -38,7 +44,7 @@ public final class SubstanceUtil {
      * @return the pressure in kPa
      */
     public static float getPressure(List<SubstanceStack> substances, float volume, float temperature) {
-        return SubstanceUtil.getTotalVolume(substances) * GAS_CONSTANT * temperature / volume;
+        return SubstanceUtil.getTotalAmount(substances) * GAS_CONSTANT * temperature / volume;
     }
 
     /**

@@ -14,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -131,14 +132,29 @@ public final class AtmosHandler {
      * @param pos       The starting position for the flood fill.
      */
     public static void updateAtmosphere(ServerLevel level, BlockPos pos) {
-        if (!level.isLoaded(pos) || level.canSeeSky(pos)) return;
+        if (!level.isLoaded(pos)) return;
+        BlockState state = level.getBlockState(pos);
+        BlockPos.MutableBlockPos mutPos = new BlockPos.MutableBlockPos();
+        int oldId = zoneId(level, pos);
+        if (oldId != 0) {
+            removeAtmos(level, pos, mutPos, oldId);
+        }
 
-        BlockPos.MutableBlockPos neighbor = new BlockPos.MutableBlockPos();
-        int zoneId = zoneId(level, pos);
-        if (zoneId != 0 && !isFullyOpen(level.getBlockState(pos))) {
-            removeAtmos(level, pos, neighbor, zoneId);
-        } else {
-            expandAtmos(level, pos, neighbor);
+        boolean isOpen = isFullyOpen(state);
+        if (isOpen) {
+            expandAtmos(level, pos, mutPos);
+        }
+
+        if (isOpen && zoneId(level, pos) == 0) {
+            tryCreateZone(level, pos);
+        }
+
+        for (Direction dir : DIRECTIONS) {
+            mutPos.setWithOffset(pos, dir);
+            if (!level.isLoaded(mutPos)) continue;
+            if (zoneId(level, mutPos) != 0) continue;
+            if (!isFullyOpen(level.getBlockState(mutPos))) continue;
+            tryCreateZone(level, mutPos.immutable());
         }
     }
 
@@ -182,10 +198,7 @@ public final class AtmosHandler {
             largestZone.addBlock();
             LevelChunk chunk = level.getChunkAt(pos);
             chunk.getData(ATMOSPHERE.get()).set(pos, largestZone.getId());
-            return;
         }
-
-        tryCreateZone(level, pos);
     }
 
     private static void tryCreateZone(ServerLevel level, BlockPos pos) {
@@ -200,7 +213,7 @@ public final class AtmosHandler {
         BlockPos.MutableBlockPos mutPos = new BlockPos.MutableBlockPos();
         while (!queue.isEmpty()) {
             BlockPos cur = queue.poll();
-            if (level.canSeeSky(cur)) return;
+            if (isUnderOpenSky(level, cur)) return;
             BlockState state = level.getBlockState(cur);
             if (isFullyOpen(state)) hasOpenCell = true;
 
@@ -262,14 +275,18 @@ public final class AtmosHandler {
 
     private static List<SubstanceStack> airGases(float temperature, int blocks) {
         float molesPerBlock = 101.325f * 1000 / (GAS_CONSTANT * temperature);
-        return List.of(new SubstanceStack(NITROGEN.get(), (int) (molesPerBlock * 0.79f * blocks)), new SubstanceStack(OXYGEN.get(), (int) (molesPerBlock * 0.21f * blocks)));
+        return List.of(
+                new SubstanceStack(NITROGEN.get(), Math.round(molesPerBlock * 0.79f * blocks)),
+                new SubstanceStack(OXYGEN.get(), Math.round(molesPerBlock * 0.21f * blocks))
+        );
     }
 
+    @SuppressWarnings("unchecked")
     private static void trySplitZone(ServerLevel level, List<BlockPos> neighbors, AtmosZone zone, int zoneId) {
         Long2IntOpenHashMap visited = new Long2IntOpenHashMap();
         visited.defaultReturnValue(-1);
-        List<LongOpenHashSet> blocks = new ArrayList<>();
-        List<Queue<BlockPos>> queues = new ArrayList<>();
+        LongOpenHashSet[] blocks = new LongOpenHashSet[neighbors.size()];
+        Queue<BlockPos>[] queues = new Queue[neighbors.size()];
         int active = 0;
 
         for (int i = 0; i < neighbors.size(); i++) {
@@ -279,25 +296,25 @@ public final class AtmosHandler {
 
             LongOpenHashSet blockSet = new LongOpenHashSet();
             blockSet.add(key);
-            blocks.add(blockSet);
+            blocks[i] = blockSet;
 
             Queue<BlockPos> queue = new ArrayDeque<>();
             queue.add(start);
-            queues.add(queue);
+            queues[i] = queue;
 
             active++;
         }
 
         while (active > 1) {
-            for (int i = 0; i < queues.size() && active > 1; i++) {
-                Queue<BlockPos> queue = queues.get(i);
+            for (int i = 0; i < queues.length && active > 1; i++) {
+                Queue<BlockPos> queue = queues[i];
                 if (queue == null) continue;
 
                 BlockPos cur = queue.poll();
                 if (cur == null) {
-                    zone.removeBlocks(blocks.get(i).size());
-                    createZone(level, blocks.get(i), neighbors.get(i));
-                    queues.set(i, null);
+                    zone.removeBlocks(blocks[i].size());
+                    createZone(level, blocks[i], neighbors.get(i));
+                    queues[i] = null;
                     active--;
                     continue;
                 }
@@ -311,24 +328,24 @@ public final class AtmosHandler {
 
                     if (owner == -1) {
                         visited.put(key, i);
-                        blocks.get(i).add(key);
+                        blocks[i].add(key);
                         queue.add(next);
                     } else if (owner != i) {
-                        int from = blocks.get(i).size() < blocks.get(owner).size() ? i : owner;
+                        int from = blocks[i].size() < blocks[owner].size() ? i : owner;
                         int to = (from == i) ? owner : i;
 
-                        for (long block : blocks.get(from)) {
+                        for (long block : blocks[from]) {
                             visited.put(block, to);
                         }
 
-                        blocks.get(to).addAll(blocks.get(from));
-                        queues.get(to).addAll(queues.get(from));
-                        blocks.set(from, null);
-                        queues.set(from, null);
+                        blocks[to].addAll(blocks[from]);
+                        queues[to].addAll(queues[from]);
+                        blocks[from] = null;
+                        queues[from] = null;
                         active--;
 
                         if (from == i) {
-                            queues.get(to).add(cur);
+                            queues[to].add(cur);
                             break;
                         }
                     }
@@ -353,4 +370,9 @@ public final class AtmosHandler {
             chunk.getData(ATMOSPHERE.get()).set(block, zone.getId());
         }
     }
+
+    private static boolean isUnderOpenSky(Level level, BlockPos pos) {
+        return pos.getY() >= level.getHeight(Heightmap.Types.MOTION_BLOCKING, pos.getX(), pos.getZ());
+    }
+
 }
