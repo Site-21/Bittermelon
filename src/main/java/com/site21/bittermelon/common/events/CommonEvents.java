@@ -146,7 +146,7 @@ public class CommonEvents {
                 stack.getSubstance().onContact(stack, entity);
             }
 
-            if (stains.getVolume() > 10 && level.getRandom().nextFloat() > 0.1f) {
+            if (stains.getVolume() > 10 && level.getRandom().nextFloat() > 0.1f && !entity.isSwimming()) {
                 List<SubstanceStack> drippedSubstances = stains.spreadSubstancesByVolume(10);
                 if (spill(level, pos, drippedSubstances, stains.getTemperature())) {
                     stains.removeSubstances(drippedSubstances);
