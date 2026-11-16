@@ -147,6 +147,12 @@ public class SubstanceMixture implements SubstanceContainer {
         markSearchDirty();
     }
 
+    public void updateSubstancesNoUpdate(List<SubstanceStack> newSubstances) {
+        for (SubstanceStack stack : newSubstances) {
+            updateSubstanceNoUpdate(stack.copy());
+        }
+    }
+
     public void transferSubstances(List<SubstanceStack> newSubstances) {
         if (newSubstances.isEmpty()) return;
         for (SubstanceStack stack : newSubstances) {
@@ -191,6 +197,12 @@ public class SubstanceMixture implements SubstanceContainer {
             removeSubstanceNoUpdate(stack, stack.getAmount() * multiplier);
         }
         refresh();
+    }
+
+    public void removeSubstancesNoUpdate(List<SubstanceStack> toRemove, int multiplier) {
+        for (SubstanceStack stack : toRemove) {
+            removeSubstanceNoUpdate(stack, stack.getAmount() * multiplier);
+        }
     }
 
     public void mergeSubstances(@NotNull List<SubstanceStack> newSubstances, SubstanceStack stack) {

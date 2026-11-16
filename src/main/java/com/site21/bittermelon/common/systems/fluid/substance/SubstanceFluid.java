@@ -93,6 +93,8 @@ public class SubstanceFluid extends Fluid {
             if (!spreadHorizontally(level, pos, fluidBE, canRise, touched) && volume > FULL_BLOCK_VOLUME) {
                 spreadUpwards(level, pos, fluidBE, canRise, touched);
             }
+
+            newEqualizeSubstances(level, pos, fluidBE, touched);
         } finally {
             for (SubstanceFluidBlockEntity be : touched) {
                 be.update(level);
@@ -117,16 +119,29 @@ public class SubstanceFluid extends Fluid {
     private boolean spreadDownwards(Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE, List<SubstanceFluidBlockEntity> touched) {
         List<SubstanceStack> substances = fluidBE.getMixture().getSubstances();
         if (substances.isEmpty()) return false;
+        int volume = fluidBE.getVolume();
 
         BlockPos belowPos = pos.below();
         BlockState belowState = level.getBlockState(belowPos);
         if (!canSpreadTo(level, belowPos, belowState)) return false;
 
-        SubstanceFluidBlockEntity target = spreadTo(level, belowPos, belowState, substances, fluidBE.getMixture().getTemperature());
+        int spreadVolume = (level.getBlockEntity(belowPos) instanceof SubstanceFluidBlockEntity belowBE)
+                ? Math.min(volume, FULL_BLOCK_VOLUME - belowBE.getVolume())
+                : volume;
+
+        List<SubstanceStack> spreadSubstances = SubstanceUtil.spreadSubstancesByVolume(
+                substances,
+                volume,
+                spreadVolume
+        );
+
+        if (spreadSubstances.isEmpty()) return false;
+
+        SubstanceFluidBlockEntity target = spreadTo(level, belowPos, belowState, spreadSubstances, fluidBE.getMixture().getTemperature());
         if (target != null) touched.add(target);
 
-        fluidBE.getMixture().setSubstances(List.of());
-        return true;
+        fluidBE.getMixture().removeSubstances(spreadSubstances);
+        return volume == spreadVolume;
     }
 
     private boolean spreadHorizontally(Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE, boolean canRise, List<SubstanceFluidBlockEntity> touched) {
@@ -153,37 +168,75 @@ public class SubstanceFluid extends Fluid {
         }
 
         int spreadCount = spreadPositions.size();
-        List<SubstanceStack> substancesToSpread = getSubstancesForSpread(fluidBE, spreadCount, downwardSpread);
 
-        if (substancesToSpread.isEmpty()) {
+        if (fluidBE.getMixture().getSubstances().isEmpty()) {
             Profiler.get().pop();
             return false;
         }
 
+        int volume = fluidBE.getVolume();
         float temperature = fluidBE.getMixture().getTemperature();
-        for (BlockPos spreadPos : spreadPositions) {
-            SubstanceFluidBlockEntity target = spreadTo(level, spreadPos, substancesToSpread, temperature);
-            if (target != null) touched.add(target);
+        List<SubstanceStack>[] spreadSubstances = new List[spreadCount];
+        boolean[] foam = new boolean[spreadCount];
+        SubstanceMixture mixture = fluidBE.getMixture();
+
+        for (int j = 0; j < spreadCount; j++) {
+            BlockPos spreadPos = spreadPositions.get(j);
+            int neighborVolume = (level.getBlockEntity(spreadPos) instanceof SubstanceFluidBlockEntity targetBE)
+                    ? targetBE.getVolume()
+                    : 0;
+
+            int spreadVolume = downwardSpread
+                    ? Math.round(volume * DOWNWARDS_SPREAD_RATIO) / spreadCount
+                    : (volume - neighborVolume) / (spreadCount + 1);
+
+            List<SubstanceStack> substances = SubstanceUtil.spreadSubstancesByVolume(
+                    mixture.getSubstances(),
+                    volume,
+                    spreadVolume
+            );
+
+            spreadSubstances[j] = substances;
+            foam[j] = spreadVolume >= 100;
         }
 
-        fluidBE.getMixture().removeSubstances(substancesToSpread, spreadCount);
-        equalizeSubstances(level, pos, fluidBE, canRise, touched);
+        boolean anySpread = false;
+        RandomSource random = level.getRandom();
+        for (int j = 0; j < spreadCount; j++) {
+            if (spreadSubstances[j].isEmpty()) continue;
+
+            BlockPos spreadPos = spreadPositions.get(j);
+            SubstanceFluidBlockEntity target = spreadTo(level, spreadPos, spreadSubstances[j], temperature);
+            mixture.removeSubstancesNoUpdate(spreadSubstances[j], 1);
+            if (target != null) touched.add(target);
+            anySpread = true;
+
+            // TODO: replace with proper foam particle
+            if (foam[j] && level instanceof ServerLevel serverLevel) {
+                serverLevel.sendParticles(
+                        ParticleTypes.DUST_PLUME,
+                        spreadPos.getX() + 0.5 * random.nextFloat(),
+                        spreadPos.getY() + 0.1 * random.nextFloat(),
+                        spreadPos.getZ() + 0.5 * random.nextFloat(),
+                        5,
+                        0,
+                        0,
+                        0,
+                        0.05
+                );
+            }
+        }
+
+        if (!anySpread) {
+            Profiler.get().pop();
+            return false;
+        }
+
+        mixture.refresh();
+//        equalizeSubstances(level, pos, fluidBE, canRise, touched);
 
         Profiler.get().pop();
         return true;
-    }
-
-    private List<SubstanceStack> getSubstancesForSpread(SubstanceFluidBlockEntity fluidBE, int spreadCount, boolean downwardSpread) {
-        int sourceVolume = fluidBE.getVolume();
-        int spreadVolume = downwardSpread ?
-                Math.round(sourceVolume * DOWNWARDS_SPREAD_RATIO) / spreadCount :
-                sourceVolume / (spreadCount + 1);
-
-        return SubstanceUtil.spreadSubstancesByVolume(
-                fluidBE.getMixture().getSubstances(),
-                sourceVolume,
-                spreadVolume
-        );
     }
 
     private void getDownwardSpreadPositions(Level level, BlockPos pos, BlockState[] neighborStates, List<BlockPos> positions) {
@@ -279,9 +332,9 @@ public class SubstanceFluid extends Fluid {
         if (!neighborFluidState.isEmpty() && !neighborFluidState.is(this)) return false;
 
         if (neighborFluidState.is(this) && level.getBlockEntity(pos) instanceof SubstanceFluidBlockEntity neighborBE) {
-//            return fluidBE.getVolume() - neighborBE.getVolume() >= 50;
             if (shouldRiseInstead(canRise, fluidBE.getVolume(), neighborBE.getVolume())) return false;
-            return fluidBE.getVolume() > neighborBE.getVolume();
+//            return fluidBE.getVolume() > neighborBE.getVolume();
+            return fluidBE.getVolume() - neighborBE.getVolume() >= 10;
         }
 
         // Check if the block can be replaced by this fluid
@@ -290,6 +343,78 @@ public class SubstanceFluid extends Fluid {
         }
 
         return isEmpty(blockState);
+    }
+
+    private void newEqualizeSubstances(Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE, List<SubstanceFluidBlockEntity> touched) {
+        List<SubstanceFluidBlockEntity> fluids = new ArrayList<>(4);
+
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            BlockPos neighborPos = pos.relative(direction);
+            if (level.getBlockEntity(neighborPos) instanceof SubstanceFluidBlockEntity neighborBE) {
+                fluids.add(neighborBE);
+            }
+        }
+
+        if (fluids.isEmpty()) return;
+
+        SubstanceMixture mainMixture = fluidBE.getMixture();
+        int mainVolume = mainMixture.getVolume();
+        float mainTemperature = mainMixture.getTemperature();
+
+        int count = fluids.size();
+        List<SubstanceStack>[] in = new List[count];
+        List<SubstanceStack>[] out = new List[count];
+
+        for (int i = 0; i < count; i++) {
+            SubstanceMixture mixture = fluids.get(i).getMixture();
+            int volume = mixture.getVolume();
+            int slice = Math.round(Math.min(mainVolume, volume) * 0.4f / count);
+            in[i] = SubstanceUtil.spreadSubstancesByVolume(mixture.getSubstances(), volume, slice);
+            out[i] = SubstanceUtil.spreadSubstancesByVolume(mainMixture.getSubstances(), mainVolume, slice);
+        }
+
+        float keptCapacity = mainMixture.getHeatCapacity();
+        float gainedCapacity = 0;
+        float gainedHeat = 0;
+        boolean changed = false;
+        for (int i = 0; i < count; i++) {
+            if (in[i].isEmpty() || out[i].isEmpty()) continue;
+
+            SubstanceFluidBlockEntity be = fluids.get(i);
+            SubstanceMixture mixture = be.getMixture();
+
+            float neighborTemperature = mixture.getTemperature();
+            boolean sameTemperature = Math.abs(mainTemperature - neighborTemperature) < 0.01f;
+            if (sameTemperature && SubstanceUtil.sameSubstances(in[i], out[i], 1)) continue;
+
+            float inCapacity = SubstanceUtil.getHeatCapacity(in[i]);
+            float outCapacity = SubstanceUtil.getHeatCapacity(out[i]);
+            float neighborKept = mixture.getHeatCapacity() - inCapacity;
+            mixture.updateSubstancesNoUpdate(out[i]);
+            mixture.removeSubstancesNoUpdate(in[i], 1);
+            mainMixture.updateSubstancesNoUpdate(in[i]);
+            mainMixture.removeSubstancesNoUpdate(out[i], 1);
+
+            float neighborTotal = neighborKept + outCapacity;
+            if (neighborTotal > 0) {
+                mixture.setTemperatureNoUpdate((neighborKept * neighborTemperature + outCapacity * mainTemperature) / neighborTotal);
+            }
+
+            keptCapacity -= outCapacity;
+            gainedCapacity += inCapacity;
+            gainedHeat += inCapacity * neighborTemperature;
+            mixture.refresh();
+            touched.add(be);
+            changed = true;
+        }
+
+        if (!changed) return;
+
+        float mainTotal = keptCapacity + gainedCapacity;
+        if (mainTotal > 0) {
+            mainMixture.setTemperatureNoUpdate((keptCapacity * mainTemperature + gainedHeat) / mainTotal);
+        }
+        mainMixture.refresh();
     }
 
     private void equalizeSubstances(Level level, BlockPos pos, SubstanceFluidBlockEntity fluidBE, boolean canRise, List<SubstanceFluidBlockEntity> touched) {

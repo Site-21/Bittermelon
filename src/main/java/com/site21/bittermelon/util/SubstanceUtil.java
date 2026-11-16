@@ -21,6 +21,7 @@ public final class SubstanceUtil {
 
     /**
      * Get the total amount of substance in a list of SubstanceStacks.
+     *
      * @param substances the list of SubstanceStacks
      * @return the total amount of substance in moles
      */
@@ -38,8 +39,9 @@ public final class SubstanceUtil {
 
     /**
      * Calculate the pressure of an ideal gas using the Ideal Gas Law: Point = nRT/V
-     * @param substances the list of SubstanceStacks
-     * @param volume the volume in liters
+     *
+     * @param substances  the list of SubstanceStacks
+     * @param volume      the volume in liters
      * @param temperature the temperature in Kelvin
      * @return the pressure in kPa
      */
@@ -49,8 +51,9 @@ public final class SubstanceUtil {
 
     /**
      * Spill the contents of a SubstanceContainer into the world at the given position, using a default temperature of 273.15 K.
-     * @param level the level to spill the substances into
-     * @param pos the position to spill the substances at
+     *
+     * @param level      the level to spill the substances into
+     * @param pos        the position to spill the substances at
      * @param substances the list of substances to spill
      * @return true if the substances were successfully spilled, false otherwise
      */
@@ -60,8 +63,9 @@ public final class SubstanceUtil {
 
     /**
      * Spill the contents of a SubstanceContainer into the world at the given position.
-     * @param level the level to spill the substances into
-     * @param pos the position to spill the substances at
+     *
+     * @param level     the level to spill the substances into
+     * @param pos       the position to spill the substances at
      * @param container the SubstanceContainer containing the substances to spill
      * @return true if the substances were successfully spilled, false otherwise
      */
@@ -73,9 +77,10 @@ public final class SubstanceUtil {
      * Spill a list of substances into the world at the given position.
      * If the block at the position can be replaced and there is no fluid present, it will be replaced with a SubstanceFluid block.
      * The substances will then be transferred to the SubstanceFluidBlockEntity at that position.
-     * @param level the level to spill the substances into
-     * @param pos the position to spill the substances at
-     * @param substances the list of substances to spill
+     *
+     * @param level       the level to spill the substances into
+     * @param pos         the position to spill the substances at
+     * @param substances  the list of substances to spill
      * @param temperature the temperature of the substances
      * @return true if the substances were successfully spilled, false otherwise
      */
@@ -93,8 +98,9 @@ public final class SubstanceUtil {
 
     /**
      * Replace the block at the given position with a SubstanceFluid block and transfer the given substances to it.
-     * @param level the level to replace the block in
-     * @param pos the position to replace with a SubstanceFluid block
+     *
+     * @param level     the level to replace the block in
+     * @param pos       the position to replace with a SubstanceFluid block
      * @param container the SubstanceContainer containing the substances to transfer
      * @return true if the substances were successfully transferred, false otherwise
      */
@@ -109,9 +115,10 @@ public final class SubstanceUtil {
 
     /**
      * Transfer the given substances to the SubstanceFluidBlockEntity at the given position, if it exists.
-     * @param level the level to transfer the substances in
-     * @param pos the position of the SubstanceFluidBlockEntity
-     * @param substances the list of substances to transfer
+     *
+     * @param level       the level to transfer the substances in
+     * @param pos         the position of the SubstanceFluidBlockEntity
+     * @param substances  the list of substances to transfer
      * @param temperature the temperature of the substances
      * @return true if the substances were successfully transferred, false otherwise
      */
@@ -129,16 +136,30 @@ public final class SubstanceUtil {
     /**
      * Calculate the resulting temperature when spreading substances from one list to another, based on their heat capacities and temperatures.
      * If either list has a heat capacity of 0, the temperature of the "from" substances is returned.
-     * @param fromSubstances the list of substances being spread from
+     *
+     * @param fromSubstances  the list of substances being spread from
      * @param fromTemperature the temperature of the "from" substances
-     * @param toSubstances the list of substances being spread to
-     * @param toTemperature the temperature of the "to" substances
+     * @param toSubstances    the list of substances being spread to
+     * @param toTemperature   the temperature of the "to" substances
      * @return the resulting temperature after spreading the substances
      */
     public static float temperatureForSpread(List<SubstanceStack> fromSubstances, float fromTemperature, List<SubstanceStack> toSubstances, float toTemperature) {
         float fromHeatCapacity = getHeatCapacity(fromSubstances);
         float toHeatCapacity = getHeatCapacity(toSubstances);
+        return temperatureForSpread(fromHeatCapacity, fromTemperature, toHeatCapacity, toTemperature);
+    }
 
+    /**
+     * Calculate the resulting temperature when spreading substances from one heat capacity and temperature to another.
+     * If either heat capacity is 0, the temperature of the "from" substances is returned.
+     *
+     * @param fromHeatCapacity the heat capacity of the "from" substances
+     * @param fromTemperature  the temperature of the "from" substances
+     * @param toHeatCapacity   the heat capacity of the "to" substances
+     * @param toTemperature    the temperature of the "to" substances
+     * @return the resulting temperature after spreading the substances
+     */
+    public static float temperatureForSpread(float fromHeatCapacity, float fromTemperature, float toHeatCapacity, float toTemperature) {
         if (fromHeatCapacity <= 0 || toHeatCapacity <= 0) return fromTemperature;
 
         float totalHeatCapacity = fromHeatCapacity + toHeatCapacity;
@@ -155,8 +176,9 @@ public final class SubstanceUtil {
 
     /**
      * Spread a list of substances by volume, returning a new list of SubstanceStacks with the same substances but with amounts scaled by the ratio of spreadVolume to totalVolume.
-     * @param substances the list of substances to spread
-     * @param totalVolume the total volume of the substances
+     *
+     * @param substances   the list of substances to spread
+     * @param totalVolume  the total volume of the substances
      * @param spreadVolume the volume to spread the substances to
      * @return a new list of SubstanceStacks with the same substances but with amounts scaled by the ratio of spreadVolume to totalVolume
      */
@@ -181,9 +203,10 @@ public final class SubstanceUtil {
 
     /**
      * Spread a list of substances by percentage, returning a new list of SubstanceStacks with the same substances but with amounts scaled by the given percentage.
-     * @param substances the list of substances to spread
+     *
+     * @param substances  the list of substances to spread
      * @param totalVolume the total volume of the substances
-     * @param percentage the percentage to spread the substances by
+     * @param percentage  the percentage to spread the substances by
      * @return a new list of SubstanceStacks with the same substances but with amounts scaled by the given percentage
      */
     public static List<SubstanceStack> spreadSubstancesByPercentage(List<SubstanceStack> substances, int totalVolume, float percentage) {
@@ -192,8 +215,9 @@ public final class SubstanceUtil {
 
     /**
      * Split a list of substances into a given number of stacks, pruning any stacks that would have an amount below the given threshold.
-     * @param substances the list of substances to split
-     * @param spreadCount the number of stacks to split the substances into
+     *
+     * @param substances     the list of substances to split
+     * @param spreadCount    the number of stacks to split the substances into
      * @param pruneThreshold the minimum amount for a stack to be included in the result
      * @return a new list of SubstanceStacks with the same substances but with amounts scaled by the ratio of 1/spreadCount, excluding any stacks below the pruneThreshold
      */
@@ -211,5 +235,32 @@ public final class SubstanceUtil {
         }
 
         return spreadStacks;
+    }
+
+    /**
+     * Check if two lists of substances are the same, ignoring the order of the substances and allowing for a tolerance
+     * in the amount of each substance.
+     * @param a the first list of substances
+     * @param b the second list of substances
+     * @param tolerance the tolerance for the amount of each substance
+     * @return true if the lists are the same, false otherwise
+     */
+    public static boolean sameSubstances(List<SubstanceStack> a, List<SubstanceStack> b, int tolerance) {
+        return a.size() == b.size() && coveredBy(a, b, tolerance);
+    }
+
+    private static boolean coveredBy(List<SubstanceStack> from, List<SubstanceStack> other, int tolerance) {
+        for (SubstanceStack stack : from) {
+            SubstanceStack match = null;
+            for (SubstanceStack candidate : other) {
+                if (stack.canMergeWith(candidate)) {
+                    match = candidate;
+                    break;
+                }
+            }
+            if (match == null) return false;
+            if (Math.abs(stack.getAmount() - match.getAmount()) > tolerance) return false;
+        }
+        return true;
     }
 }
