@@ -372,6 +372,10 @@ public class SubstanceMixture implements SubstanceContainer {
         return SubstanceUtil.splitSubstances(substances, spreadCount, pruneThreshold);
     }
 
+    public boolean isEmpty() {
+        return substances.isEmpty();
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(substances, temperature);
