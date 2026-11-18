@@ -728,11 +728,13 @@ public class SubstanceFluid extends Fluid {
         public NeighborInfo(Level level, BlockPos pos) {
             BlockState state = level.getBlockState(pos);
             SubstanceFluidBlockEntity be = null;
+            int volume = 0;
             if (state.getFluidState().is(BitterFluids.SUBSTANCE_FLUID.get())) {
                 be = level.getBlockEntity(pos, BitterBlockEntities.SUBSTANCE_FLUID_BLOCK_ENTITY.get()).orElseThrow();
+                volume = be.getVolume();
             }
 
-            this(pos, state, be, be == null ? 0 : be.getVolume());
+            this(pos, state, be, volume);
         }
     }
 }
