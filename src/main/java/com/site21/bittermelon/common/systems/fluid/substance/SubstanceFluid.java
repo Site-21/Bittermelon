@@ -9,6 +9,7 @@ import com.site21.bittermelon.common.systems.substance.SubstanceStack;
 import com.site21.bittermelon.common.systems.substance.SubstanceState;
 import com.site21.bittermelon.init.neoforge.BitterBlockEntities;
 import com.site21.bittermelon.init.neoforge.BitterFluidTypes;
+import com.site21.bittermelon.init.neoforge.BitterFluids;
 import com.site21.bittermelon.util.SubstanceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -110,15 +111,7 @@ public class SubstanceFluid extends Fluid {
     private NeighborInfo[] getNeighbors(Level level, BlockPos pos) {
         NeighborInfo[] neighbors = new NeighborInfo[6];
         for (Direction direction : Direction.values()) {
-            BlockPos neighborPos = pos.relative(direction);
-            BlockState neighborState = level.getBlockState(neighborPos);
-            SubstanceFluidBlockEntity neighborBE = null;
-            int volume = 0;
-            if (neighborState.getFluidState().is(this)) {
-                neighborBE = level.getBlockEntity(neighborPos, BitterBlockEntities.SUBSTANCE_FLUID_BLOCK_ENTITY.get()).orElseThrow();
-                volume = neighborBE.getVolume();
-            }
-            neighbors[direction.ordinal()] = new NeighborInfo(neighborPos, neighborState, neighborBE, volume);
+            neighbors[direction.ordinal()] = new NeighborInfo(level, pos.relative(direction));
         }
         return neighbors;
     }
@@ -155,7 +148,7 @@ public class SubstanceFluid extends Fluid {
         if (spreadSubstances.isEmpty()) return false;
 
         SubstanceFluidBlockEntity target = spreadTo(level, belowInfo, spreadSubstances, fluidBE.getMixture().getTemperature());
-        touched.add(target);
+        if (target != null) touched.add(target);
 
         fluidBE.getMixture().removeSubstances(spreadSubstances);
         return volume == spreadVolume;
@@ -183,10 +176,11 @@ public class SubstanceFluid extends Fluid {
         int volume = fluidBE.getVolume();
         SubstanceMixture mixture = fluidBE.getMixture();
         float temperature = mixture.getTemperature();
-        List<SubstanceStack>[] spreadSubstances = new List[4];
+        List<SubstanceStack>[] spreadSubstances = new List[6];
 //        boolean[] foam = new boolean[spreadCount];
 
-        for (int i = 0; i < 4; i++) {
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            int i = direction.ordinal();
             if (!spreadable[i]) continue;
 
             NeighborInfo neighborInfo = neighbors[i];
@@ -206,13 +200,14 @@ public class SubstanceFluid extends Fluid {
 
         boolean anySpread = false;
         RandomSource random = level.getRandom();
-        for (int i = 0; i < 4; i++) {
+        for (Direction direction : Direction.Plane.HORIZONTAL) {
+            int i = direction.ordinal();
             if (!spreadable[i] || spreadSubstances[i].isEmpty()) continue;
 
             NeighborInfo neighborInfo = neighbors[i];
             SubstanceFluidBlockEntity target = spreadTo(level, neighborInfo, spreadSubstances[i], temperature);
             mixture.removeSubstancesNoUpdate(spreadSubstances[i], 1);
-            touched.add(target);
+            if (target != null) touched.add(target);
             anySpread = true;
 
             // TODO: replace with proper foam particle
@@ -311,7 +306,7 @@ public class SubstanceFluid extends Fluid {
             if (substancesToSpread.isEmpty()) return;
 
             SubstanceFluidBlockEntity target = spreadTo(level, aboveInfo, substancesToSpread, fluidBE.getMixture().getTemperature());
-            touched.add(target);
+            if (target != null) touched.add(target);
 
             for (SubstanceStack spreadStack : substancesToSpread) {
                 fluidBE.getMixture().removeSubstance(spreadStack, spreadStack.getAmount());
@@ -328,14 +323,7 @@ public class SubstanceFluid extends Fluid {
     }
 
     private boolean canSpreadTo(Level level, BlockPos pos) {
-        SubstanceFluidBlockEntity be = level.getBlockEntity(pos, BitterBlockEntities.SUBSTANCE_FLUID_BLOCK_ENTITY.get()).orElse(null);
-        NeighborInfo info = new NeighborInfo(
-                pos,
-                level.getBlockState(pos),
-                be,
-                be != null ? be.getVolume() : 0
-        );
-        return canSpreadTo(level, info);
+        return canSpreadTo(level, new NeighborInfo(level, pos));
     }
 
     private boolean canSpreadTo(Level level, NeighborInfo info) {
@@ -526,15 +514,22 @@ public class SubstanceFluid extends Fluid {
         Profiler.get().pop();
     }
 
-    private SubstanceFluidBlockEntity spreadTo(Level level, NeighborInfo neighborInfo, List<SubstanceStack> substances, float temperature) {
+    protected void spreadTo(Level level, BlockPos pos, List<SubstanceStack> substances, float temperature) {
+        NeighborInfo info = new NeighborInfo(level, pos);
+        spreadTo(level, info, substances, temperature);
+    }
+
+    private @Nullable SubstanceFluidBlockEntity spreadTo(Level level, NeighborInfo neighborInfo, List<SubstanceStack> substances, float temperature) {
         if (!neighborInfo.state().getFluidState().is(this)) {
             level.setBlock(neighborInfo.pos(), createLegacyBlock(defaultFluidState().setValue(LEVEL, 1)), Block.UPDATE_NONE);
             playFlowSound(level, neighborInfo.pos(), level.getRandom());
         }
 
         SubstanceFluidBlockEntity be = neighborInfo.be() == null
-                ? level.getBlockEntity(neighborInfo.pos(), BitterBlockEntities.SUBSTANCE_FLUID_BLOCK_ENTITY.get()).orElseThrow()
+                ? level.getBlockEntity(neighborInfo.pos(), BitterBlockEntities.SUBSTANCE_FLUID_BLOCK_ENTITY.get()).orElse(null)
                 : neighborInfo.be();
+
+        if (be == null) return null;
 
         SubstanceMixture mixture = be.getMixture();
 
@@ -730,5 +725,14 @@ public class SubstanceFluid extends Fluid {
     }
 
     private record NeighborInfo(BlockPos pos, BlockState state, @Nullable SubstanceFluidBlockEntity be, int volume) {
+        public NeighborInfo(Level level, BlockPos pos) {
+            BlockState state = level.getBlockState(pos);
+            SubstanceFluidBlockEntity be = null;
+            if (state.getFluidState().is(BitterFluids.SUBSTANCE_FLUID.get())) {
+                be = level.getBlockEntity(pos, BitterBlockEntities.SUBSTANCE_FLUID_BLOCK_ENTITY.get()).orElseThrow();
+            }
+
+            this(pos, state, be, be == null ? 0 : be.getVolume());
+        }
     }
 }
