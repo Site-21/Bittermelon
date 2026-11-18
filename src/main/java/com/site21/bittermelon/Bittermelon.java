@@ -3,7 +3,7 @@ package com.site21.bittermelon;
 import com.github.stephengold.joltjni.Jolt;
 import com.github.stephengold.joltjni.JoltPhysicsObject;
 import com.mojang.logging.LogUtils;
-import com.site21.bittermelon.common.content.items.clownhammer.ClownHammer;
+import com.site21.bittermelon.common.content.items.balloonhammer.BalloonHammer;
 import com.site21.bittermelon.common.systems.chemistry.ReactionLoader;
 import com.site21.bittermelon.init.neoforge.BitterEntities;
 import com.site21.bittermelon.init.neoforge.BitterRegistries;
@@ -62,7 +62,7 @@ public class Bittermelon {
     public Bittermelon(IEventBus modEventBus) throws Exception {
         initJolt();
         NeoForge.EVENT_BUS.register(this);
-        NeoForge.EVENT_BUS.addListener(ClownHammer::onEntityInteract);
+        NeoForge.EVENT_BUS.addListener(BalloonHammer::onEntityInteract);
 
         BitterEntities.register(modEventBus);
         ITEMS.register(modEventBus);

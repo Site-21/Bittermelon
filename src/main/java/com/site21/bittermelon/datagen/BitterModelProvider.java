@@ -174,7 +174,7 @@ public class BitterModelProvider extends ModelProvider {
         itemModels.generateFlatItem(WIRE_CUTTERS.get(), ModelTemplates.FLAT_HANDHELD_ITEM);
         generate3D2DItem(itemModels, MOP.get());
         generate3D2DItem(itemModels, TASER.get());
-        generate3D2DItem(itemModels, CLOWN_HAMMER.get());
+        generate3D2DItem(itemModels, BALLOON_HAMMER.get());
 
 
         // Writing Utensils
