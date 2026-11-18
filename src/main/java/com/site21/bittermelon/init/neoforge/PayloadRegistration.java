@@ -25,7 +25,6 @@ import com.site21.bittermelon.common.content.items.wirecutters.networking.CutWir
 import com.site21.bittermelon.common.content.items.wirecutters.networking.OpenWireCutterScreen;
 import com.site21.bittermelon.common.content.items.writablepaper.networking.OpenPaperEditScreen;
 import com.site21.bittermelon.common.content.mobeffects.electrocuted.networking.CutOffChat;
-import com.site21.bittermelon.common.systems.atmosphere.networking.*;
 import com.site21.bittermelon.common.systems.carry.ThrowCarriedEntity;
 import com.site21.bittermelon.common.systems.character.networking.*;
 import com.site21.bittermelon.common.systems.economy.bank.networking.OpenATMScreen;
